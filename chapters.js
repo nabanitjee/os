@@ -1,5 +1,5 @@
 // =========================
-// CHAPTERS ENGINE V4
+// CHAPTERS ENGINE V4 (FIXED OVERLAPS)
 // =========================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -25,14 +25,14 @@ function showChapterEditModal(chapterName) {
   if (!ch) return;
 
   const modalHTML = `
-    <div style="padding:5px; color:#fff; font-family:sans-serif;">
-      <h3 style="margin-top:0; color:var(--accent);">Configure: ${chapterName}</h3>
-      <p style="font-size:0.85em; opacity:0.6; margin:-10px 0 15px 0;">Subject: ${ch.subject}</p>
-      <hr style="border:0; border-top:1px solid #334; margin-bottom:15px;">
+    <div style="color:#fff; font-family:sans-serif; text-align: left;">
+      <h3 style="margin: 0; font-size: 1.3rem; color: var(--accent); line-height: 1.2;">${chapterName}</h3>
+      <p style="font-size: 0.85rem; opacity: 0.6; margin: 4px 0 15px 0;">Subject: ${ch.subject}</p>
+      <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin-bottom:15px;">
 
       <div style="margin-bottom:12px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em;">Preparation Status</label>
-        <select id="edit-ch-status" style="width:100%; padding:10px; background:#1b2d57; border:none; color:#fff; border-radius:8px;">
+        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">Preparation Status</label>
+        <select id="edit-ch-status" style="width:100%; padding:12px; background:#1b2d57; border:none; color:#fff; border-radius:10px;">
           <option value="weak" ${ch.status === 'weak' ? 'selected' : ''}>🔴 Weak (25%)</option>
           <option value="average" ${ch.status === 'average' ? 'selected' : ''}>🟡 Average (50%)</option>
           <option value="strong" ${ch.status === 'strong' ? 'selected' : ''}>🟢 Strong (75%)</option>
@@ -41,40 +41,46 @@ function showChapterEditModal(chapterName) {
       </div>
 
       <div style="margin-bottom:12px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em;">PYQs Solved Count</label>
-        <input type="number" id="edit-ch-pyq" value="${ch.pyq || 0}" style="width:100%; padding:10px; background:#1b2d57; border:none; color:#fff; border-radius:8px; box-sizing:border-box;">
+        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">PYQs Solved Count</label>
+        <input type="number" id="edit-ch-pyq" value="${ch.pyq || 0}" style="width:100%; padding:12px; background:#1b2d57; border:none; color:#fff; border-radius:10px; box-sizing:border-box;">
       </div>
 
-      <div style="margin-bottom:12px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em;">Priority Flag</label>
-        <select id="edit-ch-priority" style="width:100%; padding:10px; background:#1b2d57; border:none; color:#fff; border-radius:8px;">
+      <div style="margin-bottom:16px;">
+        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">Priority Flag</label>
+        <select id="edit-ch-priority" style="width:100%; padding:12px; background:#1b2d57; border:none; color:#fff; border-radius:10px;">
           <option value="low" ${ch.priority === 'low' ? 'selected' : ''}>Low Priority</option>
           <option value="medium" ${ch.priority === 'medium' ? 'selected' : ''}>Medium Priority</option>
           <option value="high" ${ch.priority === 'high' ? 'selected' : ''}>High Priority</option>
         </select>
       </div>
 
-      <div style="margin-bottom:15px; display:flex; flex-direction:column; gap:6px;">
-        <label style="font-size:0.9em; margin-bottom:2px;">Revision Checkpoints</label>
-        <label style="font-size:0.85em; display:flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="edit-ch-r1" ${ch.revision1 ? 'checked' : ''}> Revision Slot 1
+      <div style="margin-bottom:16px;">
+        <label style="font-size:0.9em; color: rgba(255,255,255,0.8); display:block; margin-bottom:4px;">Revision Checkpoints</label>
+        
+        <label class="checkbox-row">
+          <input type="checkbox" id="edit-ch-r1" ${ch.revision1 ? 'checked' : ''}>
+          <span>Revision Slot 1</span>
         </label>
-        <label style="font-size:0.85em; display:flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="edit-ch-r2" ${ch.revision2 ? 'checked' : ''}> Revision Slot 2
+        
+        <label class="checkbox-row">
+          <input type="checkbox" id="edit-ch-r2" ${ch.revision2 ? 'checked' : ''}>
+          <span>Revision Slot 2</span>
         </label>
-        <label style="font-size:0.85em; display:flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="edit-ch-r3" ${ch.revision3 ? 'checked' : ''}> Revision Slot 3
+        
+        <label class="checkbox-row">
+          <input type="checkbox" id="edit-ch-r3" ${ch.revision3 ? 'checked' : ''}>
+          <span>Revision Slot 3</span>
         </label>
       </div>
 
-      <div style="margin-bottom:15px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em;">Chapter Revision Notes</label>
-        <textarea id="edit-ch-notes" placeholder="Key formulas, conditions, main equations..." style="width:100%; height:60px; padding:10px; background:#1b2d57; border:none; color:#fff; border-radius:8px; box-sizing:border-box; resize:vertical;">${ch.notes || ""}</textarea>
+      <div style="margin-bottom:20px;">
+        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">Chapter Notes</label>
+        <textarea id="edit-ch-notes" placeholder="Formulas, core shortcuts..." style="width:100%; height:60px; padding:12px; background:#1b2d57; border:none; border-radius:10px; box-sizing:border-box; resize:vertical; margin:0;">${ch.notes || ""}</textarea>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0;">Close</button>
-        <button onclick="processChapterSave('${chapterName.replace(/'/g, "\\'")}')" style="background:var(--accent); margin:0; font-weight:bold;">Save Changes</button>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button onclick="hideModal()" style="background:#475569; margin:0; padding:10px 16px;">Close</button>
+        <button onclick="processChapterSave('${chapterName.replace(/'/g, "\\'")}')" style="background:var(--accent); margin:0; padding:10px 16px; font-weight:bold;">Save Changes</button>
       </div>
     </div>
   `;
@@ -103,6 +109,7 @@ function processChapterSave(chapterName) {
   if (typeof renderPrepIndex === "function") renderPrepIndex();
   if (typeof renderSubjectProgress === "function") renderSubjectProgress();
   if (typeof renderLowestPYQList === "function") renderLowestPYQList();
+  if (typeof renderBacklogRevision === "function") renderBacklogRevision();
 }
 
 function handleCustomChapterSubmit() {
@@ -132,6 +139,7 @@ function handleCustomChapterSubmit() {
   nameInput.value = ""; 
   renderChaptersList();
   if (typeof renderStatusCounts === "function") renderStatusCounts();
+  if (typeof renderBacklogRevision === "function") renderBacklogRevision();
 }
 
 function renderChaptersList(query = "", filter = "all") {
@@ -155,7 +163,7 @@ function renderChaptersList(query = "", filter = "all") {
     html += `
       <div class="chapter-card" onclick="showChapterEditModal('${name.replace(/'/g, "\\'")}')" style="cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; border-left: 4px solid ${statusBadgeColor};">
         <div>
-          <div class="chapter-title" style="font-size:0.95rem; line-height:1.3; color:#fff;">${name}</div>
+          <div class="chapter-title" style="font-size:0.95rem; line-height:1.3; color:#fff; margin:0;">${name}</div>
           <small style="opacity:0.6; font-size:0.8rem;">${data.subject}</small>
         </div>
         <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
