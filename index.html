@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JEE OS</title>  
+  <link rel="stylesheet" href="style.css">  
+  
+  <!-- Chart.js Engine for Performance Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Application Modules -->
+  <script defer src="app.js"></script>  
+  <script defer src="syllabus.js"></script>  
+  <script defer src="chapters.js"></script>  
+  <script defer src="journal.js"></script>  
+  <script defer src="mocks.js"></script>  
+  <script defer src="clat.js"></script>  
+  <script defer src="futureme.js"></script> 
+  <script defer src="quest.js"></script> 
+  <script defer src="backup.js"></script>
+</head>
+<body>  
+
+  <!-- DASHBOARD -->  
+  <section id="dashboard-page" class="page active">
+    <header class="hero">
+      <h1>JEE OS</h1>
+      <div class="countdown-container">
+        <div class="countdown-card">
+          <h3>JEE Main</h3>
+          <p id="jee-main-countdown">--</p>
+        </div>
+        <div class="countdown-card">
+          <h3>JEE Advanced</h3>
+          <p id="jee-advanced-countdown">--</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- DROP YEAR INFO -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h2 id="drop-day">0</h2>
+        <p>Drop Day</p>
+      </div>
+      <div class="stat-card">
+        <h2 id="study-streak">0</h2>
+        <p>Streak</p>
+      </div>
+    </div>
+
+    <!-- STATUS COUNTS -->
+    <div class="stats-grid">
+      <div class="stat-card weak">
+        <h2 id="weak-count">0</h2>
+        <p>Weak</p>
+      </div>
+      <div class="stat-card average">
+        <h2 id="average-count">0</h2>
+        <p>Average</p>
+      </div>
+      <div class="stat-card strong">
+        <h2 id="strong-count">0</h2>
+        <p>Strong</p>
+      </div>
+      <div class="stat-card mastered">
+        <h2 id="mastered-count">0</h2>
+        <p>Mastered</p>
+      </div>
+    </div>
+
+    <!-- PREPARATION INDEX -->
+    <div class="card">
+      <h2>Preparation Index</h2>
+      <div class="progress-bar">
+        <div id="prep-progress"></div>
+      </div>
+      <span id="prep-percent">0%</span>
+    </div>
+
+    <!-- SUBJECT PROGRESS -->
+    <div class="card">
+      <h2>Subject Progress</h2>
+      <div class="subject-progress">
+        <div>
+          <p>Physics</p>
+          <div class="progress-bar">
+            <div id="physics-progress"></div>
+          </div>
+        </div>
+        <div>
+          <p>Chemistry</p>
+          <div class="progress-bar">
+            <div id="chemistry-progress"></div>
+          </div>
+        </div>
+        <div>
+          <p>Mathematics</p>
+          <div class="progress-bar">
+            <div id="maths-progress"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MISSION -->
+    <div class="card">
+      <h2>Mission Board</h2>
+      <div id="mission-board">No active mission.</div>
+    </div>
+
+    <!-- FUTURE ME WIDGET -->
+    <div class="card">
+      <h2>Message From Future Me</h2>
+      <div id="motivation-card">No Future Notes Yet</div>
+    </div>
+
+    <!-- LATEST MOCK -->
+    <div class="card">
+      <h2>Latest Mock</h2>
+      <div id="latest-mock">No mocks added yet.</div>
+    </div>
+
+    <!-- CLAT WIDGET -->
+    <div class="card">
+      <h2>CLAT This Week</h2>
+      <div id="clat-week-hours">0 Hours</div>
+    </div>
+
+    <!-- QUEST -->
+    <div class="card">
+      <h2>Today's Quest</h2>
+      <div id="quest-list">No quest generated.</div>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div class="card">
+      <h2>Danger Zone</h2>
+      <div id="danger-zone-list"></div>
+    </div>
+  </section>  
+
+  <!-- CHAPTERS -->  
+  <section id="chapters-page" class="page">
+    <div class="page-header">
+      <h2>Chapters <span id="chapter-counts"></span></h2>
+    </div>
+
+    <input id="chapter-search" type="text" placeholder="Search chapters...">
+
+    <div class="filter-row">
+      <button class="filter-btn" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="weak">Weak</button>
+      <button class="filter-btn" data-filter="average">Average</button>
+      <button class="filter-btn" data-filter="strong">Strong</button>
+      <button class="filter-btn" data-filter="mastered">Mastered</button>
+    </div>
+
+    <div class="card">
+      <h3>Add Custom Chapter</h3>
+      <input id="custom-chapter-name" placeholder="Chapter Name">
+      <select id="custom-chapter-subject">
+        <option>Physics</option>
+        <option>Chemistry</option>
+        <option>Mathematics</option>
+      </select>
+      <button id="add-custom-chapter-btn">Add Chapter</button>
+    </div>
+
+    <div id="chapter-grid"></div>
+  </section>  
+
+  <!-- JOURNAL -->  
+  <section id="journal-page" class="page">
+    <h2>Daily Journal</h2>
+    <input id="journal-search" type="text" placeholder="Search by date..." oninput="renderJournal()">
+    <button id="add-journal-entry">Add Entry</button>
+    <div id="journal-list"></div>
+  </section>  
+
+  <!-- MOCKS -->  
+  <section id="mock-page" class="page">
+    <h2>Mock Tests</h2>
+    <button id="add-mock-btn">Add Mock</button>
+    
+    <div class="card">
+      <h3>Mock Analytics</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 5px;">
+        <p style="margin:0;">Average Score: <span id="avg-mock-score" style="font-weight: bold;">0</span></p>
+        <p style="margin:0;">Best Score: <span id="best-mock-score" style="font-weight: bold;">0</span></p>
+        <p style="margin:0;">Physics Avg: <span id="avg-p-score" style="font-weight: bold;">0</span></p>
+        <p style="margin:0;">Chemistry Avg: <span id="avg-c-score" style="font-weight: bold;">0</span></p>
+        <p style="margin:0;">Maths Avg: <span id="avg-m-score" style="font-weight: bold;">0</span></p>
+        <p style="margin:0;">Trend: <span id="mock-trend" style="font-weight: bold;">No Trend</span></p>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE TREND CHARTS -->
+    <div class="card">
+      <h3>Performance Trends</h3>
+      <div style="margin-bottom: 25px;"><canvas id="chart-overall"></canvas></div>
+      <div style="margin-bottom: 25px;"><canvas id="chart-physics"></canvas></div>
+      <div style="margin-bottom: 25px;"><canvas id="chart-chemistry"></canvas></div>
+      <div style="margin-bottom: 25px;"><canvas id="chart-maths"></canvas></div>
+    </div>
+
+    <div id="mock-list"></div>
+  </section>  
+
+  <!-- CLAT -->  
+  <section id="clat-page" class="page">
+    <h2>CLAT Tracker</h2>
+    <button id="add-clat-btn">Add CLAT Entry</button>
+    <div class="card">
+      <h3>Best CLAT Day</h3>
+      <div id="best-clat-day">No Data</div>
+    </div>
+    <div id="clat-list"></div>
+  </section>  
+
+  <!-- FUTURE -->  
+  <section id="future-page" class="page">
+    <h2>Future Me</h2>
+    <button id="add-future-note-btn">Add Note</button>
+    <div id="future-note-list"></div>
+  </section>  
+
+  <!-- SETTINGS -->  
+  <section id="settings-page" class="page">
+    <h2>Settings</h2>
+    <div class="card">
+      <h3>Exam Dates</h3>
+      <label>JEE Main Date</label>
+      <input id="jee-main-date" type="date">
+      <label>JEE Advanced Date</label>
+      <input id="jee-advanced-date" type="date">
+    </div>
+
+    <div class="card">
+      <button id="export-btn">Export Backup</button>
+      <button id="import-btn">Import Backup</button>
+    </div>
+  </section>  
+
+  <!-- UNIVERSAL MODAL OVERLAY -->  
+  <div id="modal-overlay">
+    <div id="modal-box">
+      <div id="modal-content"></div>
+    </div>
+  </div>  
+
+  <!-- NAVIGATION -->  
+  <nav class="bottom-nav">
+    <button data-page="dashboard-page">🏠</button>
+    <button data-page="chapters-page">📚</button>
+    <button data-page="journal-page">📝</button>
+    <button data-page="mock-page">📈</button>
+    <button data-page="clat-page">⚖️</button>
+    <button data-page="future-page">🚀</button>
+    <button data-page="settings-page">⚙️</button>
+  </nav>
+</body>
+</html>
