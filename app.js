@@ -192,7 +192,7 @@ function renderPrepIndex() {
 }
 
 // =========================
-// STATUS COUNTS (FIXED MATH)
+// STATUS COUNTS
 // =========================
 
 function renderStatusCounts() {
@@ -247,7 +247,61 @@ function renderMissionBoard() {
 }
 
 // =========================
-// MODAL CONTROLLERS
+// STRATEGIC REVISION BACKLOG
+// =========================
+
+function renderBacklogRevision() {
+  const container = document.getElementById("backlog-revision-list");
+  if (!container) return;
+
+  const items = Object.entries(appData.chapters);
+  if (items.length === 0) {
+    container.innerHTML = `<div style="text-align:center; opacity:0.5; padding:10px;">Initialising syllabus items...</div>`;
+    return;
+  }
+
+  // Map and prioritize chapters that need urgent attention based on Priority and Time Elapsed
+  const sortedBacklog = items
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => {
+      // 1. Sort primarily by Priority value metrics (high -> medium -> low)
+      const weight = { high: 3, medium: 2, low: 1 };
+      const priorityA = weight[a.priority || "medium"];
+      const priorityB = weight[b.priority || "medium"];
+      
+      if (priorityB !== priorityA) return priorityB - priorityA;
+      
+      // 2. Secondary sort: Oldest revision date first (null targets are absolute top backlog items)
+      if (!a.lastRevised) return -1;
+      if (!b.lastRevised) return 1;
+      return new Date(a.lastRevised) - new Date(b.lastRevised);
+    })
+    .slice(0, 5); // Slice top 5 urgent inputs
+
+  let html = "";
+  sortedBacklog.forEach(ch => {
+    const priorityClass = ch.priority === "high" ? "high-priority" : ch.priority === "low" ? "low-priority" : "";
+    const badgeColor = ch.priority === "high" ? "var(--weak)" : ch.priority === "low" ? "var(--mastered)" : "var(--average)";
+    const dateLabel = ch.lastRevised ? `Last: ${ch.lastRevised}` : "⚠️ Never Revised";
+
+    html += `
+      <div class="backlog-item ${priorityClass}" onclick="if(typeof showChapterEditModal === 'function') showChapterEditModal('${ch.name.replace(/'/g, "\\'")}')" style="cursor:pointer;">
+        <div>
+          <strong style="color:#fff; font-size:0.95rem;">${ch.name}</strong><br>
+          <small style="opacity:0.6;">${ch.subject} • ${dateLabel}</small>
+        </div>
+        <span style="background:${badgeColor}; color:#081224; font-size:0.72rem; padding:3px 8px; border-radius:6px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px;">
+          ${ch.priority || "medium"}
+        </span>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+// =========================
+// MODAL UI LAYOUT ENGINE CONTROLS
 // =========================
 
 function showModal(htmlContent) {
@@ -265,7 +319,7 @@ function hideModal() {
 }
 
 // =========================
-// BOOTSTRAP EXECUTOR
+// BOOTSTRAP INITIALIZATION PIPELINE
 // =========================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -276,24 +330,29 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPrepIndex();
   renderStatusCounts();
   renderMissionBoard();
+  renderBacklogRevision();
 
-  // Session restore fallback routing
+  // Load the page session state memory bookmark securely
   const savedPage = sessionStorage.getItem("active_page_v3") || "dashboard-page";
   openPage(savedPage);
 });
 
-// Async fallback hooks for secondary rendering items
+// Asynchronous execution fallback triggers
 setTimeout(() => {
   if (typeof renderSubjectProgress === "function") renderSubjectProgress();
   if (typeof renderLowestPYQList === "function") renderLowestPYQList();
   if (typeof renderMotivationCard === "function") renderMotivationCard();
+  if (typeof renderBacklogRevision === "function") renderBacklogRevision();
 }, 200);
 
-// Global variable window scoping declarations
+// =========================
+// EXPOSE CORE CONFIGURATION HOOKS
+// =========================
 window.appData = appData;
 window.saveData = saveData;
 window.updateActivity = updateActivity;
 window.renderStatusCounts = renderStatusCounts;
 window.renderPrepIndex = renderPrepIndex;
+window.renderBacklogRevision = renderBacklogRevision;
 window.showModal = showModal;
 window.hideModal = hideModal;
