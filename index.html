@@ -6,10 +6,8 @@
   <title>JEE OS</title>  
   <link rel="stylesheet" href="style.css">  
   
-  <!-- Chart.js Engine for Performance Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Application Modules -->
   <script defer src="app.js"></script>  
   <script defer src="syllabus.js"></script>  
   <script defer src="chapters.js"></script>  
@@ -22,7 +20,6 @@
 </head>
 <body>  
 
-  <!-- DASHBOARD -->  
   <section id="dashboard-page" class="page active">
     <header class="hero">
       <h1>JEE OS</h1>
@@ -38,7 +35,6 @@
       </div>
     </header>
 
-    <!-- DROP YEAR INFO -->
     <div class="stats-grid">
       <div class="stat-card">
         <h2 id="drop-day">0</h2>
@@ -50,7 +46,6 @@
       </div>
     </div>
 
-    <!-- STATUS COUNTS -->
     <div class="stats-grid">
       <div class="stat-card weak">
         <h2 id="weak-count">0</h2>
@@ -70,7 +65,6 @@
       </div>
     </div>
 
-    <!-- PREPARATION INDEX -->
     <div class="card">
       <h2>Preparation Index</h2>
       <div class="progress-bar">
@@ -79,7 +73,6 @@
       <span id="prep-percent">0%</span>
     </div>
 
-    <!-- SUBJECT PROGRESS -->
     <div class="card">
       <h2>Subject Progress</h2>
       <div class="subject-progress">
@@ -104,44 +97,44 @@
       </div>
     </div>
 
-    <!-- MISSION -->
+    <div class="card">
+      <h2>⚠️ Revision Backlog</h2>
+      <p style="font-size:0.85rem; opacity:0.6; margin:-8px 0 12px 0;">Chapters needing urgent review based on exam importance priority and oldest revision timeline.</p>
+      <div id="backlog-revision-list">
+        </div>
+    </div>
+
     <div class="card">
       <h2>Mission Board</h2>
       <div id="mission-board">No active mission.</div>
     </div>
 
-    <!-- FUTURE ME WIDGET -->
     <div class="card">
       <h2>Message From Future Me</h2>
       <div id="motivation-card">No Future Notes Yet</div>
     </div>
 
-    <!-- LATEST MOCK -->
     <div class="card">
       <h2>Latest Mock</h2>
       <div id="latest-mock">No mocks added yet.</div>
     </div>
 
-    <!-- CLAT WIDGET -->
     <div class="card">
       <h2>CLAT This Week</h2>
       <div id="clat-week-hours">0 Hours</div>
     </div>
 
-    <!-- QUEST -->
     <div class="card">
       <h2>Today's Quest</h2>
       <div id="quest-list">No quest generated.</div>
     </div>
 
-    <!-- DANGER ZONE -->
     <div class="card">
       <h2>Danger Zone</h2>
       <div id="danger-zone-list"></div>
     </div>
   </section>  
 
-  <!-- CHAPTERS -->  
   <section id="chapters-page" class="page">
     <div class="page-header">
       <h2>Chapters <span id="chapter-counts"></span></h2>
@@ -171,7 +164,6 @@
     <div id="chapter-grid"></div>
   </section>  
 
-  <!-- JOURNAL -->  
   <section id="journal-page" class="page">
     <h2>Daily Journal</h2>
     <input id="journal-search" type="text" placeholder="Search by date..." oninput="renderJournal()">
@@ -179,7 +171,6 @@
     <div id="journal-list"></div>
   </section>  
 
-  <!-- MOCKS -->  
   <section id="mock-page" class="page">
     <h2>Mock Tests</h2>
     <button id="add-mock-btn">Add Mock</button>
@@ -196,7 +187,6 @@
       </div>
     </div>
 
-    <!-- PERFORMANCE TREND CHARTS -->
     <div class="card">
       <h3>Performance Trends</h3>
       <div style="margin-bottom: 25px;"><canvas id="chart-overall"></canvas></div>
@@ -208,7 +198,6 @@
     <div id="mock-list"></div>
   </section>  
 
-  <!-- CLAT -->  
   <section id="clat-page" class="page">
     <h2>CLAT Tracker</h2>
     <button id="add-clat-btn">Add CLAT Entry</button>
@@ -219,14 +208,12 @@
     <div id="clat-list"></div>
   </section>  
 
-  <!-- FUTURE -->  
   <section id="future-page" class="page">
     <h2>Future Me</h2>
     <button id="add-future-note-btn">Add Note</button>
     <div id="future-note-list"></div>
   </section>  
 
-  <!-- SETTINGS -->  
   <section id="settings-page" class="page">
     <h2>Settings</h2>
     <div class="card">
@@ -243,14 +230,12 @@
     </div>
   </section>  
 
-  <!-- UNIVERSAL MODAL OVERLAY -->  
   <div id="modal-overlay">
     <div id="modal-box">
       <div id="modal-content"></div>
     </div>
   </div>  
 
-  <!-- NAVIGATION -->  
   <nav class="bottom-nav">
     <button data-page="dashboard-page">🏠</button>
     <button data-page="chapters-page">📚</button>
