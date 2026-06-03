@@ -1,12 +1,13 @@
-// =========================
-// JEE OS CORE V4
-// =========================
+// ==========================================================================
+// JEE NEXUS CORE MODULE V4
+// ==========================================================================
 
 const STORAGE_KEY = "jee_os_v3";
+const APP_NAME = "JEE Nexus"; // Rebrand string value shortcut!
 
-// =========================
+// ==========================================================================
 // STORAGE INITIALIZATION
-// =========================
+// ==========================================================================
 
 let appData = JSON.parse(
   localStorage.getItem(STORAGE_KEY)
@@ -19,12 +20,8 @@ let appData = JSON.parse(
   clat: [],
   futureNotes: [],
   dailyQuest: {
-    task1: "",
-    task2: "",
-    task3: "",
-    done1: false,
-    done2: false,
-    done3: false
+    task1: "", task2: "", task3: "",
+    done1: false, done2: false, done3: false
   },
   streak: 0,
   lastActivity: null
@@ -34,11 +31,9 @@ function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
 }
 
-// =========================
+// ==========================================================================
 // NAVIGATION SYSTEM
-// =========================
-
-const pages = document.querySelectorAll(".page");
+// ==========================================================================
 
 function openPage(pageId) {
   document.querySelectorAll(".page").forEach(page => {
@@ -63,23 +58,19 @@ document.querySelectorAll(".bottom-nav button").forEach(btn => {
   btn.addEventListener("click", () => {
     const targetPage = btn.dataset.page;
     openPage(targetPage);
-    
-    // Bookmark the active page to persist through tab refreshes
     sessionStorage.setItem("active_page_v3", targetPage);
   });
 });
 
-// =========================
-// DATE SYSTEM
-// =========================
+// ==========================================================================
+// COUNTDOWNS & TIMELINES
+// ==========================================================================
 
 function getDaysLeft(dateString) {
   if (!dateString) return "--";
-
   const today = new Date();
   const target = new Date(dateString);
   const diff = target - today;
-
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
@@ -87,17 +78,13 @@ function updateCountdowns() {
   const main = document.getElementById("jee-main-countdown");
   const adv = document.getElementById("jee-advanced-countdown");
 
-  if (main) {
-    main.textContent = getDaysLeft(appData.jeeMainDate) + "d";
-  }
-
+  if (main) main.textContent = getDaysLeft(appData.jeeMainDate) + "d";
   if (adv) {
     adv.textContent = appData.jeeAdvancedDate
       ? getDaysLeft(appData.jeeAdvancedDate) + "d"
       : "Not Set";
   }
 }
-
 
 const mainDateInput = document.getElementById("jee-main-date");
 const advDateInput = document.getElementById("jee-advanced-date");
@@ -120,28 +107,21 @@ if (advDateInput) {
   });
 }
 
-// =========================
-// DROP DAY
-// =========================
+// ==========================================================================
+// PROGRESS LOGIC AGGREGATIONS
+// ==========================================================================
 
 function renderDropDay() {
   const el = document.getElementById("drop-day");
   if (!el) return;
-
   const start = new Date("2026-06-03");
   const today = new Date();
   const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-
   el.textContent = diff + 1;
 }
 
-// =========================
-// STREAK
-// =========================
-
 function updateActivity() {
   const today = new Date().toISOString().split("T")[0];
-
   if (appData.lastActivity !== today) {
     appData.lastActivity = today;
     appData.streak++;
@@ -151,20 +131,14 @@ function updateActivity() {
 
 function renderStreak() {
   const el = document.getElementById("study-streak");
-  if (!el) return;
-  el.textContent = appData.streak;
+  if (el) el.textContent = appData.streak;
 }
-
-// =========================
-// PREPARATION INDEX
-// =========================
 
 function calculatePrepIndex() {
   const chapters = Object.values(appData.chapters);
   if (chapters.length === 0) return 0;
 
   let total = 0;
-
   chapters.forEach(ch => {
     let status = 0;
     switch (ch.status) {
@@ -173,10 +147,8 @@ function calculatePrepIndex() {
       case "strong": status = 75; break;
       case "mastered": status = 100; break;
     }
-
     const pyq = ch.pyq || 0;
     const revision = ((ch.revision1 ? 1 : 0) + (ch.revision2 ? 1 : 0) + (ch.revision3 ? 1 : 0)) / 3 * 100;
-
     total += status * 0.4 + pyq * 0.4 + revision * 0.2;
   });
 
@@ -187,20 +159,12 @@ function renderPrepIndex() {
   const percent = calculatePrepIndex();
   const bar = document.getElementById("prep-progress");
   const label = document.getElementById("prep-percent");
-
   if (bar) bar.style.width = percent + "%";
   if (label) label.textContent = percent + "%";
 }
 
-// =========================
-// STATUS COUNTS
-// =========================
-
 function renderStatusCounts() {
-  let weak = 0;
-  let average = 0;
-  let strong = 0;
-  let mastered = 0;
+  let weak = 0, average = 0, strong = 0, mastered = 0;
 
   Object.values(appData.chapters).forEach(ch => {
     switch (ch.status) {
@@ -211,45 +175,27 @@ function renderStatusCounts() {
     }
   });
 
-  const wEl = document.getElementById("weak-count");
-  const aEl = document.getElementById("average-count");
-  const sEl = document.getElementById("strong-count");
-  const mEl = document.getElementById("mastered-count");
-
-  if (wEl) wEl.textContent = weak;
-  if (aEl) aEl.textContent = average;
-  if (sEl) sEl.textContent = strong;
-  if (mEl) mEl.textContent = mastered;
+  if (document.getElementById("weak-count")) document.getElementById("weak-count").textContent = weak;
+  if (document.getElementById("average-count")) document.getElementById("average-count").textContent = average;
+  if (document.getElementById("strong-count")) document.getElementById("strong-count").textContent = strong;
+  if (document.getElementById("mastered-count")) document.getElementById("mastered-count").textContent = mastered;
 }
-
-// =========================
-// MISSION BOARD
-// =========================
 
 function renderMissionBoard() {
   const box = document.getElementById("mission-board");
   if (!box) return;
 
-  const weakest = Object.entries(appData.chapters).sort(
-    (a, b) => (a[1].pyq || 0) - (b[1].pyq || 0)
-  )[0];
-
+  const weakest = Object.entries(appData.chapters).sort((a, b) => (a[1].pyq || 0) - (b[1].pyq || 0))[0];
   if (!weakest) {
     box.textContent = "No Mission Yet";
     return;
   }
-
-  box.innerHTML = `
-    Target Chapter
-    <br><br>
-    <strong>${weakest[0]}</strong>
-    <br>PYQs Solved: ${weakest[1].pyq}
-  `;
+  box.innerHTML = `Target Chapter<br><br><strong>${weakest[0]}</strong><br>PYQs Solved: ${weakest[1].pyq}`;
 }
 
-// =========================
-// STRATEGIC REVISION BACKLOG
-// =========================
+// ==========================================================================
+// REVISION BACKLOG WIDGET
+// ==========================================================================
 
 function renderBacklogRevision() {
   const container = document.getElementById("backlog-revision-list");
@@ -257,27 +203,23 @@ function renderBacklogRevision() {
 
   const items = Object.entries(appData.chapters);
   if (items.length === 0) {
-    container.innerHTML = `<div style="text-align:center; opacity:0.5; padding:10px;">Initialising syllabus items...</div>`;
+    container.innerHTML = `<div style="text-align:center; opacity:0.5; padding:10px;">Initialising modules...</div>`;
     return;
   }
 
-  // Map and prioritize chapters that need urgent attention based on Priority and Time Elapsed
   const sortedBacklog = items
     .map(([name, data]) => ({ name, ...data }))
     .sort((a, b) => {
-      // 1. Sort primarily by Priority value metrics (high -> medium -> low)
       const weight = { high: 3, medium: 2, low: 1 };
       const priorityA = weight[a.priority || "medium"];
       const priorityB = weight[b.priority || "medium"];
       
       if (priorityB !== priorityA) return priorityB - priorityA;
-      
-      // 2. Secondary sort: Oldest revision date first (null targets are absolute top backlog items)
       if (!a.lastRevised) return -1;
       if (!b.lastRevised) return 1;
       return new Date(a.lastRevised) - new Date(b.lastRevised);
     })
-    .slice(0, 5); // Slice top 5 urgent inputs
+    .slice(0, 5);
 
   let html = "";
   sortedBacklog.forEach(ch => {
@@ -291,7 +233,7 @@ function renderBacklogRevision() {
           <strong style="color:#fff; font-size:0.95rem;">${ch.name}</strong><br>
           <small style="opacity:0.6;">${ch.subject} • ${dateLabel}</small>
         </div>
-        <span style="background:${badgeColor}; color:#081224; font-size:0.72rem; padding:3px 8px; border-radius:6px; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px;">
+        <span style="background:${badgeColor}; color:#081224; font-size:0.72rem; padding:3px 8px; border-radius:6px; font-weight:bold; text-transform:uppercase;">
           ${ch.priority || "medium"}
         </span>
       </div>
@@ -301,15 +243,14 @@ function renderBacklogRevision() {
   container.innerHTML = html;
 }
 
-// =========================
-// MODAL UI LAYOUT ENGINE CONTROLS
-// =========================
+// ==========================================================================
+// SYSTEM MODAL DISPLAY WINDOW HOOKS
+// ==========================================================================
 
 function showModal(htmlContent) {
   const overlay = document.getElementById("modal-overlay");
   const contentBox = document.getElementById("modal-content");
   if (!overlay || !contentBox) return;
-
   contentBox.innerHTML = htmlContent;
   overlay.style.display = "flex";
 }
@@ -319,11 +260,14 @@ function hideModal() {
   if (overlay) overlay.style.display = "none";
 }
 
-// =========================
-// BOOTSTRAP INITIALIZATION PIPELINE
-// =========================
+// ==========================================================================
+// RUNTIME SETUP PIPELINE BOOTSTRAP
+// ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  const titleEl = document.getElementById("nexus-app-title");
+  if (titleEl) titleEl.textContent = APP_NAME;
+
   updateActivity();
   updateCountdowns();
   renderDropDay();
@@ -333,12 +277,10 @@ document.addEventListener("DOMContentLoaded", () => {
   renderMissionBoard();
   renderBacklogRevision();
 
-  // Load the page session state memory bookmark securely
   const savedPage = sessionStorage.getItem("active_page_v3") || "dashboard-page";
   openPage(savedPage);
 });
 
-// Asynchronous execution fallback triggers
 setTimeout(() => {
   if (typeof renderSubjectProgress === "function") renderSubjectProgress();
   if (typeof renderLowestPYQList === "function") renderLowestPYQList();
@@ -346,9 +288,6 @@ setTimeout(() => {
   if (typeof renderBacklogRevision === "function") renderBacklogRevision();
 }, 200);
 
-// =========================
-// EXPOSE CORE CONFIGURATION HOOKS
-// =========================
 window.appData = appData;
 window.saveData = saveData;
 window.updateActivity = updateActivity;
