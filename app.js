@@ -88,15 +88,16 @@ function updateCountdowns() {
   const adv = document.getElementById("jee-advanced-countdown");
 
   if (main) {
-    main.textContent = getDaysLeft(appData.jeeMainDate) + " days";
+    main.textContent = getDaysLeft(appData.jeeMainDate) + "d";
   }
 
   if (adv) {
     adv.textContent = appData.jeeAdvancedDate
-      ? getDaysLeft(appData.jeeAdvancedDate) + " days"
+      ? getDaysLeft(appData.jeeAdvancedDate) + "d"
       : "Not Set";
   }
 }
+
 
 const mainDateInput = document.getElementById("jee-main-date");
 const advDateInput = document.getElementById("jee-advanced-date");
