@@ -1,5 +1,5 @@
 /* ==========================================================================
-   JEE OS CORE V4 MASTER STYLESHEET
+   JEE NEXUS V4 COMPLETE MASTER STYLESHEET
    ========================================================================== */
 
 :root {
@@ -30,7 +30,7 @@ body {
   color: var(--text);
   font-family: Inter, system-ui, sans-serif;
   min-height: 100vh;
-  padding-bottom: 110px; /* Adjusted to prevent navigation tracking cards obstruction */
+  padding-bottom: 110px; /* Space so premium glass bar doesn't block cards */
 }
 
 .page {
@@ -47,11 +47,6 @@ body {
   margin-bottom: 20px;
 }
 
-.hero h1 {
-  font-size: 2.2rem;
-  margin-bottom: 14px;
-}
-
 .page-header {
   margin-bottom: 12px;
 }
@@ -62,7 +57,89 @@ label {
 }
 
 /* ==========================================================================
-   CARD STRUCTURES & SYSTEM GRIDS
+   JEE NEXUS LOGO & NEON SIDE-BY-SIDE COUNTERS
+   ========================================================================== */
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 5px;
+}
+
+.app-header-logo {
+  height: 55px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(79, 140, 255, 0.25));
+}
+
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.nexus-countdown-container {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.nexus-countdown-card {
+  flex: 1;
+  background: linear-gradient(145deg, rgba(18, 32, 63, 0.9), rgba(15, 26, 51, 0.95));
+  border-radius: 20px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.nexus-countdown-card.main-glow {
+  border-bottom: 3px solid var(--accent);
+}
+
+.nexus-countdown-card.adv-glow {
+  border-bottom: 3px solid var(--mastered);
+}
+
+.nexus-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  opacity: 0.7;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.nexus-time-wrapper {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.nexus-time-wrapper span {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   CARDS & SYSTEM GRIDS
    ========================================================================== */
 
 .card {
@@ -98,13 +175,12 @@ label {
   font-size: 1.8rem;
 }
 
-/* Status Priority Borders */
+/* Subject Priority Borders */
 .weak { border-left: 5px solid var(--weak); }
 .average { border-left: 5px solid var(--average); }
 .strong { border-left: 5px solid var(--strong); }
 .mastered { border-left: 5px solid var(--mastered); }
 
-/* Component Specific Tracking Cards */
 .mock-card,
 .future-card,
 .journal-card,
@@ -117,7 +193,7 @@ label {
 }
 
 /* ==========================================================================
-   INTERACTION FORM CONTROLS
+   CREATIVE FORMS & MODAL CONTROL SYSTEM
    ========================================================================== */
 
 input,
@@ -168,7 +244,7 @@ button:active {
   flex: 1;
 }
 
-/* FIXED MODAL OVERLAP: Explicit styles to keep custom input checkboxes cleanly isolated */
+/* MOBLIE INPUT GAP OVERLAP RE-ALIGNMENT */
 .checkbox-row {
   display: flex;
   align-items: center;
@@ -192,7 +268,7 @@ button:active {
 }
 
 /* ==========================================================================
-   PROGRESS SECTIONS & FILTERS
+   PROGRESS GRAPHICS & FILTERS
    ========================================================================== */
 
 .progress-bar {
@@ -233,7 +309,7 @@ button:active {
 }
 
 /* ==========================================================================
-   Syllabus Chapters Grid
+   CHAPTER GRID DISPLAY
    ========================================================================== */
 
 #chapter-grid {
@@ -262,7 +338,7 @@ button:active {
 }
 
 /* ==========================================================================
-   WIDGETS & REVISION BACKLOG
+   WIDGET ANALYTICS & STRATEGIC REVISION BACKLOG
    ========================================================================== */
 
 #motivation-card,
@@ -283,7 +359,6 @@ button:active {
   border-radius: 12px;
 }
 
-/* Backlog Tracker Metrics */
 .backlog-item {
   background: var(--card2);
   border-left: 4px solid var(--average);
@@ -313,7 +388,7 @@ canvas {
 }
 
 /* ==========================================================================
-   MODAL OVERLAY FRAMEWORKS
+   UNIVERSAL POPUP SYSTEM OVERLAYS
    ========================================================================== */
 
 #modal-overlay {
@@ -345,7 +420,7 @@ canvas {
 }
 
 /* ==========================================================================
-   CREATIVE GLASSMORPHISM BOTTOM NAVIGATION BAR
+   PREMIUM GLASSMORPHISM BOTTOM NAVIGATION BAR
    ========================================================================== */
 
 .bottom-nav {
@@ -397,33 +472,23 @@ canvas {
 }
 
 /* ==========================================================================
-   MEDIA QUERIES (MOBILE OPTIMIZATIONS)
+   MOBILE DISPLAYS SUB-RESPONSIVE ADAPTATIONS
    ========================================================================== */
 
 @media(max-width:600px) {
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  #chapter-grid { grid-template-columns: 1fr 1fr; }
+  
+  .card, .chapter-card, .mock-card, .future-card, .journal-card, .clat-card { 
+    transition: .25s; 
   }
-
-  #chapter-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .card,
-  .chapter-card,
-  .mock-card,
-  .future-card,
-  .journal-card,
-  .clat-card {
-    transition: .25s;
-  }
-
-  .card:hover,
-  .chapter-card:hover,
-  .mock-card:hover,
-  .future-card:hover,
-  .journal-card:hover,
-  .clat-card:hover {
+  
+  .card:hover, .chapter-card:hover, .mock-card:hover, .future-card:hover, .journal-card:hover, .clat-card:hover {
     transform: translateY(-2px);
   }
+}
+
+@media(max-width: 360px) {
+  .nexus-time-wrapper span { font-size: 1.15rem; }
+  .nexus-label { font-size: 0.65rem; }
 }
