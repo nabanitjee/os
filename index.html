@@ -3,11 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JEE OS</title>  
+  <title>JEE Nexus</title>  
   <link rel="stylesheet" href="style.css">  
-  
+
+  <!-- Home Screen App Icon Shortcuts -->
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="icon" type="image/png" href="logo.png">
+  <meta name="apple-mobile-web-app-title" content="JEE Nexus">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <!-- Chart.js Engine for Performance Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Application Modules -->
   <script defer src="app.js"></script>  
   <script defer src="syllabus.js"></script>  
   <script defer src="chapters.js"></script>  
@@ -20,20 +28,32 @@
 </head>
 <body>  
 
+  <!-- DASHBOARD -->  
   <section id="dashboard-page" class="page active">
     <header class="hero">
-      <h1>JEE OS</h1>
-      <div class="countdown-container">
-        <div class="countdown-card">
-          <h3>JEE Main</h3>
-          <p id="jee-main-countdown">--</p>
+      <!-- Image Logo Header -->
+      <div class="logo-container">
+        <img src="logo.png" alt="JEE Nexus Logo" class="app-header-logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';">
+        <h1 id="text-logo" style="display:none;">JEE Nexus</h1>
+      </div>
+
+      <!-- Modern Side-by-Side Neon Countdown -->
+      <div class="nexus-countdown-container">
+        <div class="nexus-countdown-card main-glow">
+          <span class="nexus-label">JEE MAIN</span>
+          <div class="nexus-time-wrapper">
+            <span id="jee-main-countdown">--</span>
+          </div>
         </div>
-        <div class="countdown-card">
-          <h3>JEE Advanced</h3>
-          <p id="jee-advanced-countdown">--</p>
+        <div class="nexus-countdown-card adv-glow">
+          <span class="nexus-label">JEE ADVANCED</span>
+          <div class="nexus-time-wrapper">
+            <span id="jee-advanced-countdown">--</span>
+          </div>
         </div>
       </div>
     </header>
+
 
     <div class="stats-grid">
       <div class="stat-card">
