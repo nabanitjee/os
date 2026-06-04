@@ -11,8 +11,12 @@ function showJournalForm(entryId = null) {
   const isEdit = entryId !== null;
   let entry = { hours: "", mood: "7", work: "", notes: "" };
 
+  // Safety fallback for window appData scope checking
+  if (!window.appData) window.appData = { journal: [] };
+  if (!window.appData.journal) window.appData.journal = [];
+
   if (isEdit) {
-    const found = appData.journal.find(e => e.id === Number(entryId));
+    const found = window.appData.journal.find(e => e.id === Number(entryId));
     if (found) entry = found;
   }
 
@@ -43,23 +47,36 @@ function showJournalForm(entryId = null) {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0;">Cancel</button>
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0;">Cancel</button>
         <button onclick="processJournalSubmit(${isEdit ? entry.id : null})" style="background:var(--accent); margin:0; font-weight:bold;">Save Journal</button>
       </div>
     </div>
   `;
-  
-  if (typeof showModal === "function") showModal(formHTML);
+
+  // Dynamic overlay selector checking
+  if (typeof showModal === "function") {
+    showModal(formHTML);
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    const content = document.getElementById("modal-content");
+    if (overlay && content) {
+      content.innerHTML = formHTML;
+      overlay.style.display = "flex";
+    }
+  }
 }
 
 function processJournalSubmit(existingId = null) {
+  if (!window.appData) window.appData = { journal: [] };
+  if (!window.appData.journal) window.appData.journal = [];
+
   const hrVal = document.getElementById("j-hours").value || "0";
   const mdVal = document.getElementById("j-mood").value || "5";
   const wkVal = document.getElementById("j-work").value.trim() || "General Self-Study";
   const ntVal = document.getElementById("j-notes").value.trim() || "";
 
   if (existingId) {
-    const log = appData.journal.find(e => e.id === existingId);
+    const log = window.appData.journal.find(e => e.id === existingId);
     if (log) {
       log.hours = hrVal;
       log.mood = mdVal;
@@ -67,7 +84,7 @@ function processJournalSubmit(existingId = null) {
       log.notes = ntVal;
     }
   } else {
-    appData.journal.push({
+    window.appData.journal.push({
       id: Date.now(),
       date: new Date().toISOString().split("T")[0],
       hours: hrVal,
@@ -78,15 +95,40 @@ function processJournalSubmit(existingId = null) {
     if (typeof updateActivity === "function") updateActivity();
   }
 
-  saveData();
-  hideModal();
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
+  // Close popup view
+  if (typeof hideModal === "function") {
+    hideModal();
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    if (overlay) overlay.style.display = "none";
+  }
+
+  // INSTANT RE-RENDER TRIGGERS Across active UI panels
   renderJournal();
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function deleteJournalEntry(id) {
-  appData.journal = appData.journal.filter(entry => entry.id !== id);
-  saveData();
+  window.appData.journal = window.appData.journal.filter(entry => entry.id !== id);
+  
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+  
   renderJournal();
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function editJournalEntry(id) {
@@ -95,7 +137,8 @@ function editJournalEntry(id) {
 
 function filterJournal() {
   const q = document.getElementById("journal-search")?.value.toLowerCase() || "";
-  return appData.journal.filter(entry => entry.date.toLowerCase().includes(q));
+  const baseList = (window.appData && window.appData.journal) ? window.appData.journal : [];
+  return baseList.filter(entry => entry.date.toLowerCase().includes(q));
 }
 
 function renderJournal() {
@@ -123,12 +166,16 @@ function renderJournal() {
     `;
   });
 
-  container.innerHTML = html || `<div class="card">No Journal Entries Found</div>`;
+  container.innerHTML = html || `<div class="card" style="opacity:0.5; text-align:center; padding:20px;">No Journal Entries Found</div>`;
 }
 
 function getTotalStudyHours() {
-  return appData.journal.reduce((sum, entry) => sum + Number(entry.hours || 0), 0);
+  const baseList = (window.appData && window.appData.journal) ? window.appData.journal : [];
+  return baseList.reduce((sum, entry) => sum + Number(entry.hours || 0), 0);
 }
+
+// Fallback structural alias mapping to intercept index.html global calls
+window.showAddJournalModal = showJournalForm;
 
 window.showJournalForm = showJournalForm;
 window.processJournalSubmit = processJournalSubmit;
