@@ -1,5 +1,5 @@
 // ==========================================================================
-// JEE NEXUS SYLLABUS INTERACTIVE GRID MODULE - V4 COMPLETE
+// JEE NEXUS SYLLABUS INTERACTIVE GRID MODULE - V4 COMPLETE WITH SECURE DELETE
 // ==========================================================================
 
 let currentFilterValue = "all";
@@ -21,7 +21,7 @@ function initChapterGridSystem() {
     addBtn.onclick = handleAddCustomChapter;
   }
 
-  // ULTRA-SAFE EVENT SELECTION BINDING (Finds buttons anywhere inside the row)
+  // ULTRA-SAFE EVENT SELECTION BINDING
   document.querySelectorAll(".filter-row .filter-btn").forEach(btn => {
     btn.onclick = function(e) {
       document.querySelectorAll(".filter-row .filter-btn").forEach(b => b.classList.remove("active-filter"));
@@ -30,7 +30,6 @@ function initChapterGridSystem() {
       
       currentFilterValue = e.target.getAttribute("data-filter");
       
-      // SMART FALLBACK: If HTML is cached and missing data-filter-type, auto-assign it
       let detectedType = e.target.getAttribute("data-filter-type");
       if (!detectedType) {
         if (currentFilterValue === "high" || currentFilterValue === "medium" || currentFilterValue === "low") {
@@ -45,7 +44,6 @@ function initChapterGridSystem() {
     };
   });
 
-  // Render on startup
   renderChapterGrid();
 }
 
@@ -61,10 +59,8 @@ function renderChapterGrid() {
   let renderedCount = 0;
 
   items.forEach(([name, data]) => {
-    // 1. Search Query Filter Match
     if (searchQuery && !name.toLowerCase().includes(searchQuery)) return;
 
-    // 2. Advanced Combined Filter Blocks
     if (currentFilterValue !== "all") {
       if (currentFilterType === "priority") {
         const itemPriority = data.priority || "medium";
@@ -76,7 +72,6 @@ function renderChapterGrid() {
 
     renderedCount++;
 
-    // Dynamic Color Coding Logic
     let statusColor = "var(--weak)";
     if (data.status === "average") statusColor = "var(--average)";
     if (data.status === "strong") statusColor = "var(--strong)";
@@ -124,7 +119,6 @@ function handleAddCustomChapter() {
     return;
   }
 
-  // Create new dataset record schema
   window.appData.chapters[name] = {
     subject: subject,
     status: "weak",
@@ -150,7 +144,11 @@ function showChapterEditModal(chName) {
 
   const modalHTML = `
     <div style="text-align:left; color:#fff;">
-      <h3 style="margin-top:0; color:var(--accent); font-weight:900; line-height:1.2;">${chName}</h3>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+        <h3 style="margin-top:0; color:var(--accent); font-weight:900; line-height:1.2; max-width:80%;">${chName}</h3>
+        <!-- Premium Custom Bin Button -->
+        <button onclick="confirmChapterDelete('${chName.replace(/'/g, "\\'")}')" style="background:#ef4444; margin:0; padding:6px 10px; font-size:0.9rem; border-radius:8px; box-shadow:none;">🗑️</button>
+      </div>
       <p style="font-size:0.8rem; opacity:0.5; margin-bottom:15px;">Submodule tracking panel configuration</p>
       
       <label style="font-size:0.85rem; font-weight:bold; color:#94a3b8;">PREPARATION STATUS</label>
@@ -208,7 +206,6 @@ function saveChapterEdits(chName) {
   const r2 = document.getElementById("edit-ch-r2").checked;
   const r3 = document.getElementById("edit-ch-r3").checked;
 
-  // Track revision timestamps for history directory metrics
   if (r1 !== ch.revision1 || r2 !== ch.revision2 || r3 !== ch.revision3 || newStatus !== ch.status) {
     ch.lastRevised = new Date().toISOString().split("T")[0];
   }
@@ -220,18 +217,57 @@ function saveChapterEdits(chName) {
   ch.revision2 = r2;
   ch.revision3 = r3;
 
-  if (typeof window.saveData === "function") window.saveData();
-  if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
-  if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
-  if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision();
-  if (typeof window.renderFullMasterDirectory === "function") window.renderFullMasterDirectory();
-
+  finalizeSyllabusUpdates();
   if (typeof window.hideModal === "function") window.hideModal();
   renderChapterGrid();
 }
 
-// Global Window Bindings
+// ==========================================================================
+// SECURE IN-BUILD TWO-STEP DELETE CONFIRMATION INTERFACE
+// ==========================================================================
+
+function confirmChapterDelete(chName) {
+  const modalHTML = `
+    <div style="text-align:center; color:#fff; padding: 10px 5px;">
+      <span style="font-size:3rem;">⚠️</span>
+      <h3 style="margin:10px 0 6px 0; color:#ff5b5b; font-weight:900;">Delete Chapter?</h3>
+      <p style="font-size:0.9rem; opacity:0.8; line-height:1.4; margin-bottom:20px;">
+        Are you sure you want to completely erase <strong style="color:var(--accent);">${chName}</strong>?<br>
+        This will wipe out all logged PYQ counts and revision data permanently.
+      </p>
+      
+      <div class="action-row" style="gap:12px;">
+        <button onclick="showChapterEditModal('${chName.replace(/'/g, "\\'")}')" style="background:#475569; margin:0;">No, Go Back</button>
+        <button onclick="executeChapterDelete('${chName.replace(/'/g, "\\'")}')" style="background:#ef4444; font-weight:bold; margin:0; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);">Yes, Delete</button>
+      </div>
+    </div>
+  `;
+  
+  if (typeof window.showModal === "function") window.showModal(modalHTML);
+}
+
+function executeChapterDelete(chName) {
+  if (window.appData.chapters[chName]) {
+    delete window.appData.chapters[chName]; // Drops record from primary database array
+    
+    finalizeSyllabusUpdates();
+    if (typeof window.hideModal === "function") window.hideModal();
+    renderChapterGrid();
+  }
+}
+
+function finalizeSyllabusUpdates() {
+  if (typeof window.saveData === "function") window.saveData();
+  if (typeof window.renderStatusCounts === "function") window.renderStatusCounts === "function" && window.renderStatusCounts();
+  if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
+  if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision();
+  if (typeof window.renderFullMasterDirectory === "function") window.renderFullMasterDirectory();
+}
+
+// Global Scope Window Exports
 window.initChapterGridSystem = initChapterGridSystem;
 window.renderChapterGrid = renderChapterGrid;
 window.showChapterEditModal = showChapterEditModal;
 window.saveChapterEdits = saveChapterEdits;
+window.confirmChapterDelete = confirmChapterDelete;
+window.executeChapterDelete = executeChapterDelete;
