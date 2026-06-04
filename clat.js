@@ -16,7 +16,6 @@ function showClatForm(entryId = null) {
   const isEdit = entryId !== null;
   let entry = { english: "", legal: "", gk: "", logical: "", qt: "" };
 
-  // Strict structural scope checking
   if (!window.appData) window.appData = { clat: [] };
   if (!window.appData.clat) window.appData.clat = [];
 
@@ -26,7 +25,7 @@ function showClatForm(entryId = null) {
   }
 
   const formHTML = `
-    <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif;">
+    <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align: left;">
       <h3 style="margin-top:0; color:var(--accent);">${isEdit ? "Modify CLAT Hours Log" : "Log Daily CLAT Section Hours"}</h3>
       <hr style="border:0; border-top:1px solid #334; margin-bottom:15px;">
       
@@ -58,8 +57,8 @@ function showClatForm(entryId = null) {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0;">Cancel</button>
-        <button onclick="processClatSubmit(${isEdit ? entry.id : null})" style="background:var(--accent); margin:0; font-weight:bold;">Save Log</button>
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; padding:12px; flex:1;">Cancel</button>
+        <button onclick="processClatSubmit(${isEdit ? entry.id : null})" style="background:var(--accent); margin:0; font-weight:bold; padding:12px; flex:1;">Save Log</button>
       </div>
     </div>
   `;
@@ -104,7 +103,7 @@ function processClatSubmit(existingId = null) {
       id: Date.now(), date: new Date().toISOString().split("T")[0],
       english: eng, legal: leg, gk: gk, logical: log, qt: qt, total: calcTotal
     });
-    if (typeof updateActivity === "function") updateActivity();
+    if (typeof updateActivity === "function") window.updateActivity();
   }
 
   if (typeof window.saveData === "function") {
@@ -122,7 +121,6 @@ function processClatSubmit(existingId = null) {
 
   refreshClatUI();
 
-  // CRITICAL HOT RE-RENDER: Force immediate update on home layout elements
   if (typeof window.fullyTriggerUIRefresh === "function") {
     window.fullyTriggerUIRefresh();
   }
@@ -130,7 +128,7 @@ function processClatSubmit(existingId = null) {
 
 function deleteClat(id) {
   window.appData.clat = window.appData.clat.filter(entry => entry.id !== id);
-  
+
   if (typeof window.saveData === "function") {
     window.saveData();
   } else {
@@ -204,19 +202,19 @@ function renderClat() {
 
   sorted.forEach(entry => {
     html += `
-      <div class="clat-card">
-        <h3 style="color:var(--accent); margin-bottom:6px;">📅 ${entry.date}</h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; font-size:0.9rem; opacity:0.8;">
+      <div class="clat-card" style="text-align: left; margin-bottom: 12px;">
+        <h3 style="color:var(--accent); margin-bottom:6px; font-size:1.05rem;">📅 ${entry.date}</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.9rem; opacity:0.8;">
           <span>Eng: ${entry.english}h</span><span>Legal: ${entry.legal}h</span>
           <span>GK: ${entry.gk}h</span><span>Log: ${entry.logical}h</span>
           <span>Quant: ${entry.qt}h</span>
         </div>
-        <p style="margin-top:6px; font-weight:bold; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px;">
+        <p style="margin-top:8px; font-weight:bold; border-top:1px solid rgba(255,255,255,0.05); padding-top:6px; font-size:0.95rem;">
           Total: <span style="color:var(--strong);">${entry.total} hrs</span>
         </p>
-        <div class="action-row" style="margin-top:10px;">
-          <button onclick="editClat(${entry.id})" style="background:var(--card2);">Edit</button>
-          <button onclick="deleteClat(${entry.id})" style="background:#b91c1c;">Delete</button>
+        <div class="action-row" style="margin-top:12px; display:flex; gap:8px;">
+          <button onclick="editClat(${entry.id})" style="background:var(--card2); padding:8px 14px; margin:0;">Edit</button>
+          <button onclick="deleteClat(${entry.id})" style="background:#b91c1c; padding:8px 14px; margin:0;">Delete</button>
         </div>
       </div>
     `;
@@ -225,9 +223,12 @@ function renderClat() {
   container.innerHTML = html || `<div class="card" style="opacity:0.5; text-align:center; padding:20px;">No CLAT Entries Yet</div>`;
 }
 
-// Global configuration fallbacks
+// Global script navigation hooks map export
 window.showAddClatModal = showClatForm;
-
+window.showClatForm = showClatForm;
+window.processClatSubmit = processClatSubmit;
 window.editClat = editClat;
 window.deleteClat = deleteClat;
 window.renderClat = renderClat;
+window.renderWeeklyClat = renderWeeklyClat;
+window.refreshClatUI = refreshClatUI;
