@@ -12,9 +12,9 @@ window.appData = {
   futureNotes: [],
   streak: 0,
   lastActivityDate: "",
-  dailyQuest: { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false }, // 👈 FIXED: Base blueprint locked into schema
-  activeMissionsList: [],      // 👈 Persistent active mission registry queue array
-  completedMissionsLog: [],    // 👈 Permanent tracking archive list for achievements
+  dailyQuest: { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false }, 
+  activeMissionsList: [],      
+  completedMissionsLog: [],    
   widgetVisibility: {
     mission: true,
     future: true,
@@ -45,7 +45,7 @@ function loadData() {
         window.appData.futureNotes = parsed.futureNotes || [];
         window.appData.streak = parsed.streak !== undefined ? parsed.streak : 0;
         window.appData.lastActivityDate = parsed.lastActivityDate || "";
-        window.appData.dailyQuest = parsed.dailyQuest || { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false }; // 👈 FIXED: Maps data stream correctly
+        window.appData.dailyQuest = parsed.dailyQuest || { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false }; 
         window.appData.activeMissionsList = parsed.activeMissionsList || []; 
         window.appData.completedMissionsLog = parsed.completedMissionsLog || []; 
         window.appData.currentTheme = parsed.currentTheme || "theme-blue";
@@ -133,6 +133,88 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
+// 🔥 NEW SUB-ENGINE: GLOBAL PYQ TRACKER & MILESTONE ACHIEVEMENT MATRIX
+function renderTotalPYQsAndMilestones() {
+  const dashboard = document.getElementById("dashboard-page");
+  if (!dashboard) return;
+
+  // 1. Calculate the raw total sums from across the active database chapters
+  let totalPYQs = 0;
+  Object.values(window.appData.chapters || {}).forEach(ch => {
+    if (ch && ch.pyqs) {
+      const parsedCount = parseInt(ch.pyqs, 10);
+      if (!isNaN(parsedCount)) totalPYQs += parsedCount;
+    }
+  });
+
+  // 2. Compute dynamic milestone achievements levels (50, 100, 150...)
+  const targetStep = 50;
+  const currentLevel = Math.floor(totalPYQs / targetStep);
+  const nextMilestoneTarget = (currentLevel + 1) * targetStep;
+  const progressToNext = totalPYQs % targetStep;
+  const percentageToNext = Math.min(100, Math.round((progressToNext / targetStep) * 100));
+
+  // 3. Look for existing dynamic container or safely inject fresh ones to avoid layout crashes
+  let pyqWidget = document.getElementById("nexus-pyq-achievement-widget");
+  if (!pyqWidget) {
+    pyqWidget = document.createElement("div");
+    pyqWidget.id = "nexus-pyq-achievement-widget";
+    pyqWidget.className = "card";
+    pyqWidget.style.margin = "16px 0";
+    pyqWidget.style.padding = "16px";
+    pyqWidget.style.borderRadius = "14px";
+    pyqWidget.style.background = "var(--card1, #101c3d)";
+    pyqWidget.style.textAlign = "left";
+    
+    // Smoothly insert right after the countdown/header matrix grid elements
+    const insertionPoint = dashboard.querySelector(".metrics-grid") || dashboard.firstChild;
+    if (insertionPoint === dashboard.firstChild) {
+      dashboard.insertBefore(pyqWidget, insertionPoint);
+    } else {
+      insertionPoint.parentNode.insertBefore(pyqWidget, insertionPoint.nextSibling);
+    }
+  }
+
+  // 4. Render layout UI code with localized styling
+  let badgesHTML = "";
+  if (currentLevel > 0) {
+    badgesHTML = `<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">`;
+    for (let i = 1; i <= currentLevel; i++) {
+      badgesHTML += `
+        <span style="background: linear-gradient(135deg, #ffd700, #ffa500); color: #000; font-size: 0.72rem; font-weight: 900; padding: 4px 8px; border-radius: 6px; box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3); display: inline-flex; align-items: center; gap: 3px;">
+          🏆 CRUSHED ${i * targetStep} PYQs
+        </span>`;
+    }
+    badgesHTML += `</div>`;
+  } else {
+    badgesHTML = `
+      <div style="font-size:0.75rem; opacity:0.5; font-style:italic; margin-top:8px; color:#fff;">
+        Solve ${targetStep} PYQs to unlock your first major achievement badge!
+      </div>`;
+  }
+
+  pyqWidget.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h3 style="margin:0; font-size:1.1rem; color:#fff; font-weight:bold; display:flex; align-items:center; gap:8px;">
+          📊 Total PYQs Crushed
+        </h3>
+        <p style="margin:2px 0 0 0; font-size:1.8rem; font-weight:900; color:var(--accent, #a855f7);">${totalPYQs}</p>
+      </div>
+      <div style="text-align:right; min-width:40%;">
+        <span style="font-size:0.8rem; font-weight:bold; color: #fff; opacity:0.8;">Next Goal: ${nextMilestoneTarget}</span>
+        <div style="width:100%; height:8px; background:rgba(255,255,255,0.08); border-radius:10px; margin-top:6px; overflow:hidden;">
+          <div style="width:${percentageToNext}%; height:100%; background:linear-gradient(90deg, var(--accent, #a855f7), #10b981); border-radius:10px; transition: width 0.4s ease;"></div>
+        </div>
+        <span style="font-size:0.7rem; opacity:0.5; display:block; margin-top:2px; color:#fff;">${progressToNext}/${targetStep} items cleared</span>
+      </div>
+    </div>
+    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.06); margin:12px 0 8px 0;">
+    <div style="font-size:0.82rem; font-weight:bold; opacity:0.9; color:var(--accent, #a855f7);">UNLOCK LOGICAL ACHIEVEMENTS</div>
+    ${badgesHTML}
+  `;
+}
+
 // STREAK SUBSYSTEM ENGINE (UI PIPELINE MOUNTED)
 function renderStreak() {
   const el = document.getElementById("study-streak");
@@ -173,6 +255,7 @@ function updateActivity() {
   window.appData.lastActivityDate = todayStr;
   saveData();
   renderStreak();
+  window.renderTotalPYQsAndMilestones(); // Update dynamic cards immediately
 }
 
 // 5. Dynamic Controller Visibility Toggles
@@ -255,9 +338,10 @@ function fullyTriggerUIRefresh() {
   try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
   try { if (typeof window.renderSyllabusDistributionBalance === "function") window.renderSyllabusDistributionBalance(); } catch(e){}
   try { if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); } catch(e){} 
-  try { if (typeof window.renderQuest === "function") window.renderQuest(); } catch(e){} // 👈 FIXED: Syncs quest checklist on focus
+  try { if (typeof window.renderQuest === "function") window.renderQuest(); } catch(e){} 
   try { if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); } catch(e){} 
   try { renderStreak(); } catch(e){}
+  try { window.renderTotalPYQsAndMilestones(); } catch(e){} // 👈 Hot-sync PYQ scores
 }
 
 // Initialization Entry Points 
@@ -277,9 +361,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStatusCounts();
   renderPrepIndex();
   renderStreak();
+  
+  // Failsafe execution initialization anchor metrics
+  try { window.renderTotalPYQsAndMilestones(); } catch(e){}
 
   if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); 
-  if (typeof window.renderQuest === "function") window.renderQuest(); // 👈 FIXED: Hydrates quest state on launch
+  if (typeof window.renderQuest === "function") window.renderQuest(); 
   if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); 
   applyWidgetVisibilityLayouts();
 
@@ -307,3 +394,4 @@ window.fullyTriggerUIRefresh = fullyTriggerUIRefresh;
 window.switchNavigationTab = switchNavigationTab;
 window.renderStreak = renderStreak;
 window.updateActivity = updateActivity;
+window.renderTotalPYQsAndMilestones = renderTotalPYQsAndMilestones;
