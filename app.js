@@ -1,5 +1,5 @@
 // ==========================================================================
-// JEE NEXUS CORE ENGINE V4 (ANALYTICS & FULL DIRECTORY BUNDLE)
+// JEE NEXUS CORE ENGINE V4 (ANALYTICS & CRASH-PROOF BUNDLE)
 // ==========================================================================
 
 const STORAGE_KEY = "jee_nexus_master_db";
@@ -52,10 +52,10 @@ function openPage(pageId) {
   });
 
   document.querySelector(`[data-page="${pageId}"]`)?.classList.add("active-nav");
-  
+
   // Re-trigger localized updates when entering custom navigation screens
   if (pageId === "revision-directory-page") {
-    renderFullMasterDirectory();
+    safeRun(renderFullMasterDirectory, "renderFullMasterDirectory");
   }
 }
 
@@ -151,7 +151,6 @@ function renderStatusCounts() {
   let weak = 0, average = 0, strong = 0, mastered = 0;
 
   Object.values(appData.chapters).forEach(ch => {
-    // PASSIVE OVERRIDE: Prevent fake mastery if PYQ proof count is under 15
     if ((ch.status === "strong" || ch.status === "mastered") && (ch.pyq || 0) < 15) {
       ch.status = "average"; 
     }
@@ -193,10 +192,9 @@ function evaluatePerformanceRedFlags() {
 
   if (!appData.mocks || appData.mocks.length < 3) return;
 
-  // Grab chronological mock data entries
   const targeted = [...appData.mocks].sort((a,b) => a.id - b.id).slice(-3);
   const subjects = ["physics", "chemistry", "maths"];
-  
+
   let flagHTML = "";
 
   subjects.forEach(sub => {
@@ -204,7 +202,6 @@ function evaluatePerformanceRedFlags() {
     const s2 = targeted[1][sub] || 0;
     const s3 = targeted[2][sub] || 0;
 
-    // Trigger flag banner alert if two continuous drops are validated
     if (s2 < s1 && s3 < s2) {
       flagHTML += `
         <div class="performance-red-flag-card">
@@ -246,21 +243,21 @@ function compileMistakeRepository() {
 
   if (!cleanMatch) logHtml += `<p style="opacity:0.5; padding:15px; text-align:center;">No error tracking notes logged inside your mocks yet.</p>`;
   logHtml += `<button onclick="hideModal()" style="width:100%; margin-top:10px; background:#475569;">Dismiss Window</button></div>`;
-  
+
   showModal(logHtml);
 }
 
 // ==========================================================================
-// STRATEGIC REVISION DIRECTORY ENGINE (SCROLLABLE & priority BASELINE)
+// STRATEGIC REVISION DIRECTORY ENGINE
 // ==========================================================================
 
 function getTimelineLabelAndColor(lastRevisedString) {
   if (!lastRevisedString) {
     return { text: "Never Revised", color: "var(--critical-red)" };
   }
-  
+
   const elapsedDays = Math.floor((new Date() - new Date(lastRevisedString)) / (1000 * 60 * 60 * 24));
-  
+
   if (elapsedDays <= 7) return { text: `${elapsedDays}d ago (Safe)`, color: "var(--safe-green)" };
   if (elapsedDays <= 21) return { text: `${elapsedDays}d ago (Review)`, color: "var(--warning-orange)" };
   return { text: `${elapsedDays}d ago (Critical)`, color: "var(--critical-red)" };
@@ -317,11 +314,10 @@ function renderFullMasterDirectory() {
 
   const items = Object.entries(appData.chapters);
   if (items.length === 0) {
-    scrollContainer.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5;">No system syllabus data populated. Enter chapters to initialize profiles.</div>`;
+    scrollContainer.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5;">No system syllabus data populated.</div>`;
     return;
   }
 
-  // Complete processing loop sorted by Priority weight metrics, sub-sorted by age duration
   const fullDirectorySorted = items
     .map(([name, data]) => ({ name, ...data }))
     .sort((a, b) => {
@@ -365,7 +361,7 @@ function renderFullMasterDirectory() {
   });
 
   scrollContainer.innerHTML = html;
-  
+
   if (statsBox) {
     statsBox.innerHTML = `
       🚨 Total Critical/Decayed Chapters: <strong style="color:var(--weak); font-size:1rem;">${totalDecayedCount}</strong> / ${items.length}<br>
@@ -375,59 +371,73 @@ function renderFullMasterDirectory() {
 }
 
 // ==========================================================================
-// COUINTER INITIALIZATION INPUT TRIGGERS
+// POPUP WINDOW OVERLAYS
 // ==========================================================================
 
-const mainDateInput = document.getElementById("jee-main-date");
-const advDateInput = document.getElementById("jee-advanced-date");
-
-if (mainDateInput) {
-  mainDateInput.value = appData.jeeMainDate;
-  mainDateInput.addEventListener("change", e => {
-    appData.jeeMainDate = e.target.value;
-    saveData();
-    updateCountdowns();
-  });
+function showModal(htmlContent) {
+  const overlay = document.getElementById("modal-overlay");
+  const contentBox = document.getElementById("modal-content");
+  if (!overlay || !contentBox) return;
+  contentBox.innerHTML = htmlContent;
+  overlay.style.display = "flex";
 }
 
-if (advDateInput) {
-  advDateInput.value = appData.jeeAdvancedDate;
-  advDateInput.addEventListener("change", e => {
-    appData.jeeAdvancedDate = e.target.value;
-    saveData();
-    updateCountdowns();
-  });
+function hideModal() {
+  const overlay = document.getElementById("modal-overlay");
+  if (overlay) overlay.style.display = "none";
 }
 
 // ==========================================================================
-// PIPELINE RUNTIME BOOTSTRAP INITIALIZER
+// CRASH-PROOF EXHAUSTIVE INITIALIZATION ENGINE BLOCK
 // ==========================================================================
+
+function safeRun(func, name) {
+  try {
+    if (typeof func === "function") {
+      func();
+    } else if (typeof window[name] === "function") {
+      window[name]();
+    }
+  } catch (error) {
+    console.warn(`[Safe-Shield Bypassed] Component execution delay on: ${name}. Context:`, error.message);
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const titleEl = document.getElementById("nexus-app-title");
   if (titleEl) titleEl.textContent = APP_NAME;
 
-  updateActivity();
-  updateCountdowns();
-  renderDropDay();
-  renderStreak();
-  renderPrepIndex();
-  renderStatusCounts();
-  renderMissionBoard();
-  renderBacklogRevision();
-  evaluatePerformanceRedFlags();
+  // Run core time engines safely
+  safeRun(updateActivity, "updateActivity");
+  safeRun(updateCountdowns, "updateCountdowns");
+  safeRun(renderDropDay, "renderDropDay");
+  safeRun(renderStreak, "renderStreak");
+  
+  // Run data loops inside crash-isolated boundaries
+  safeRun(renderPrepIndex, "renderPrepIndex");
+  safeRun(renderStatusCounts, "renderStatusCounts");
+  safeRun(renderMissionBoard, "renderMissionBoard");
+  safeRun(renderBacklogRevision, "renderBacklogRevision");
+  safeRun(evaluatePerformanceRedFlags, "evaluatePerformanceRedFlags");
 
+  // Force navigate screen view open safely no matter what
   const savedPage = sessionStorage.getItem("active_page_v3") || "dashboard-page";
   openPage(savedPage);
 });
 
+// Secondary delayed safety layout synchronization check loop
 setTimeout(() => {
-  if (typeof renderSubjectProgress === "function") renderSubjectProgress();
-  if (typeof renderLowestPYQList === "function") renderLowestPYQList();
-  if (typeof renderMotivationCard === "function") renderMotivationCard();
-  if (typeof renderBacklogRevision === "function") renderBacklogRevision();
-}, 200);
+  safeRun(window.renderSubjectProgress, "renderSubjectProgress");
+  safeRun(window.renderLowestPYQList, "renderLowestPYQList");
+  safeRun(window.renderMotivationCard, "renderMotivationCard");
+  safeRun(window.renderChapterGrid, "renderChapterGrid");
+  safeRun(window.renderJournal, "renderJournal");
+  safeRun(window.renderMocks, "renderMocks");
+  safeRun(window.renderClat, "renderClat");
+  safeRun(window.renderQuestList, "renderQuestList");
+}, 250);
 
+// Global Scope Exports
 window.appData = appData;
 window.saveData = saveData;
 window.updateActivity = updateActivity;
@@ -438,3 +448,4 @@ window.renderFullMasterDirectory = renderFullMasterDirectory;
 window.compileMistakeRepository = compileMistakeRepository;
 window.showModal = showModal;
 window.hideModal = hideModal;
+window.safeRun = safeRun;
