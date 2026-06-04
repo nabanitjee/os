@@ -1,13 +1,13 @@
-// =========================
-// JEE NEXUS CORE V4
-// =========================
+// ==========================================================================
+// JEE NEXUS CORE MODULE V4
+// ==========================================================================
 
 const STORAGE_KEY = "jee_nexus_master_db"; // 👈 CRITICAL FIXED UNIFIED KEY
+const APP_NAME = "JEE Nexus";              // 👈 RESTORED branding string value shortcut
 
-// =========================
+// ==========================================================================
 // STORAGE INITIALIZATION
-// =========================
-
+// ==========================================================================
 
 let appData = JSON.parse(
   localStorage.getItem(STORAGE_KEY)
@@ -155,6 +155,10 @@ function calculatePrepIndex() {
   return Math.round(total / chapters.length);
 }
 
+// ==========================================================================
+// RENDER HANDLERS
+// ==========================================================================
+
 function renderPrepIndex() {
   const percent = calculatePrepIndex();
   const bar = document.getElementById("prep-progress");
@@ -213,7 +217,7 @@ function renderBacklogRevision() {
       const weight = { high: 3, medium: 2, low: 1 };
       const priorityA = weight[a.priority || "medium"];
       const priorityB = weight[b.priority || "medium"];
-      
+
       if (priorityB !== priorityA) return priorityB - priorityA;
       if (!a.lastRevised) return -1;
       if (!b.lastRevised) return 1;
