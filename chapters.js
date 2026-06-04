@@ -1,185 +1,227 @@
-// =========================
-// CHAPTERS ENGINE V4 (FIXED OVERLAPS)
-// =========================
+// ==========================================================================
+// JEE NEXUS SYLLABUS INTERACTIVE GRID MODULE
+// ==========================================================================
+
+let currentFilterValue = "all";
+let currentFilterType = "status"; // status OR priority
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("add-custom-chapter-btn")?.addEventListener("click", handleCustomChapterSubmit);
-  
-  document.getElementById("chapter-search")?.addEventListener("input", (e) => {
-    renderChaptersList(e.target.value);
-  });
-
-  document.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active-filter"));
-      btn.classList.add("active-filter");
-      renderChaptersList("", btn.dataset.filter);
-    });
-  });
-
-  renderChaptersList();
+  initChapterGridSystem();
 });
 
-function showChapterEditModal(chapterName) {
-  const ch = appData.chapters[chapterName];
-  if (!ch) return;
+function initChapterGridSystem() {
+  const searchInput = document.getElementById("chapter-search");
+  const addBtn = document.getElementById("add-custom-chapter-btn");
 
-  const modalHTML = `
-    <div style="color:#fff; font-family:sans-serif; text-align: left;">
-      <h3 style="margin: 0; font-size: 1.3rem; color: var(--accent); line-height: 1.2;">${chapterName}</h3>
-      <p style="font-size: 0.85rem; opacity: 0.6; margin: 4px 0 15px 0;">Subject: ${ch.subject}</p>
-      <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin-bottom:15px;">
+  if (searchInput) {
+    searchInput.addEventListener("input", () => renderChapterGrid());
+  }
 
-      <div style="margin-bottom:12px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">Preparation Status</label>
-        <select id="edit-ch-status" style="width:100%; padding:12px; background:#1b2d57; border:none; color:#fff; border-radius:10px;">
-          <option value="weak" ${ch.status === 'weak' ? 'selected' : ''}>🔴 Weak (25%)</option>
-          <option value="average" ${ch.status === 'average' ? 'selected' : ''}>🟡 Average (50%)</option>
-          <option value="strong" ${ch.status === 'strong' ? 'selected' : ''}>🟢 Strong (75%)</option>
-          <option value="mastered" ${ch.status === 'mastered' ? 'selected' : ''}>🔵 Mastered (100%)</option>
-        </select>
-      </div>
+  if (addBtn) {
+    addBtn.onclick = handleAddCustomChapter;
+  }
 
-      <div style="margin-bottom:12px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">PYQs Solved Count</label>
-        <input type="number" id="edit-ch-pyq" value="${ch.pyq || 0}" style="width:100%; padding:12px; background:#1b2d57; border:none; color:#fff; border-radius:10px; box-sizing:border-box;">
-      </div>
+  // Configure Advanced Combined Action Listeners
+  document.querySelectorAll("#chapters-page .filter-btn").forEach(btn => {
+    btn.onclick = function(e) {
+      document.querySelectorAll("#chapters-page .filter-btn").forEach(b => b.classList.remove("active-filter"));
+      
+      e.target.classList.add("active-filter");
+      
+      currentFilterValue = e.target.getAttribute("data-filter");
+      currentFilterType = e.target.getAttribute("data-filter-type") || "status";
+      
+      renderChapterGrid();
+    };
+  });
 
-      <div style="margin-bottom:16px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">Priority Flag</label>
-        <select id="edit-ch-priority" style="width:100%; padding:12px; background:#1b2d57; border:none; color:#fff; border-radius:10px;">
-          <option value="low" ${ch.priority === 'low' ? 'selected' : ''}>Low Priority</option>
-          <option value="medium" ${ch.priority === 'medium' ? 'selected' : ''}>Medium Priority</option>
-          <option value="high" ${ch.priority === 'high' ? 'selected' : ''}>High Priority</option>
-        </select>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <label style="font-size:0.9em; color: rgba(255,255,255,0.8); display:block; margin-bottom:4px;">Revision Checkpoints</label>
-        
-        <label class="checkbox-row">
-          <input type="checkbox" id="edit-ch-r1" ${ch.revision1 ? 'checked' : ''}>
-          <span>Revision Slot 1</span>
-        </label>
-        
-        <label class="checkbox-row">
-          <input type="checkbox" id="edit-ch-r2" ${ch.revision2 ? 'checked' : ''}>
-          <span>Revision Slot 2</span>
-        </label>
-        
-        <label class="checkbox-row">
-          <input type="checkbox" id="edit-ch-r3" ${ch.revision3 ? 'checked' : ''}>
-          <span>Revision Slot 3</span>
-        </label>
-      </div>
-
-      <div style="margin-bottom:20px;">
-        <label style="display:block; margin-bottom:5px; font-size:0.9em; color: rgba(255,255,255,0.8);">Chapter Notes</label>
-        <textarea id="edit-ch-notes" placeholder="Formulas, core shortcuts..." style="width:100%; height:60px; padding:12px; background:#1b2d57; border:none; border-radius:10px; box-sizing:border-box; resize:vertical; margin:0;">${ch.notes || ""}</textarea>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0; padding:10px 16px;">Close</button>
-        <button onclick="processChapterSave('${chapterName.replace(/'/g, "\\'")}')" style="background:var(--accent); margin:0; padding:10px 16px; font-weight:bold;">Save Changes</button>
-      </div>
-    </div>
-  `;
-  
-  if (typeof showModal === "function") showModal(modalHTML);
+  // Fallback bootstrap call to draw system grid items on click entry
+  renderChapterGrid();
 }
 
-function processChapterSave(chapterName) {
-  const ch = appData.chapters[chapterName];
-  if (!ch) return;
-
-  ch.status = document.getElementById("edit-ch-status").value;
-  ch.pyq = Number(document.getElementById("edit-ch-pyq").value) || 0;
-  ch.priority = document.getElementById("edit-ch-priority").value;
-  ch.revision1 = document.getElementById("edit-ch-r1").checked;
-  ch.revision2 = document.getElementById("edit-ch-r2").checked;
-  ch.revision3 = document.getElementById("edit-ch-r3").checked;
-  ch.notes = document.getElementById("edit-ch-notes").value.trim();
-  ch.lastRevised = new Date().toISOString().split("T")[0];
-
-  saveData();
-  if (typeof hideModal === "function") hideModal();
-  
-  renderChaptersList();
-  if (typeof renderStatusCounts === "function") renderStatusCounts();
-  if (typeof renderPrepIndex === "function") renderPrepIndex();
-  if (typeof renderSubjectProgress === "function") renderSubjectProgress();
-  if (typeof renderLowestPYQList === "function") renderLowestPYQList();
-  if (typeof renderBacklogRevision === "function") renderBacklogRevision();
-}
-
-function handleCustomChapterSubmit() {
-  const nameInput = document.getElementById("custom-chapter-name");
-  const subjectInput = document.getElementById("custom-chapter-subject");
-  if (!nameInput || !subjectInput) return;
-
-  const name = nameInput.value.trim();
-  const subject = subjectInput.value;
-
-  if (!name) return;
-
-  appData.chapters[name] = {
-    subject: subject,
-    status: "weak",
-    pyq: 0,
-    revision1: false,
-    revision2: false,
-    revision3: false,
-    priority: "medium",
-    notes: "",
-    lastRevised: null,
-    custom: true
-  };
-
-  saveData();
-  nameInput.value = ""; 
-  renderChaptersList();
-  if (typeof renderStatusCounts === "function") renderStatusCounts();
-  if (typeof renderBacklogRevision === "function") renderBacklogRevision();
-}
-
-function renderChaptersList(query = "", filter = "all") {
+function renderChapterGrid() {
   const grid = document.getElementById("chapter-grid");
+  const countLabel = document.getElementById("chapter-counts");
   if (!grid) return;
 
+  const searchQuery = document.getElementById("chapter-search")?.value.toLowerCase().trim() || "";
+  const items = Object.entries(window.appData.chapters || {});
+  
   let html = "";
-  let matchCount = 0;
+  let renderedCount = 0;
 
-  Object.entries(appData.chapters).forEach(([name, data]) => {
-    if (query && !name.toLowerCase().includes(query.toLowerCase())) return;
-    if (filter !== "all" && data.status !== filter) return;
+  items.forEach(([name, data]) => {
+    // Search query string baseline filter match
+    if (searchQuery && !name.toLowerCase().includes(searchQuery)) return;
 
-    matchCount++;
-    
-    let statusBadgeColor = "var(--weak)";
-    if (data.status === "average") statusBadgeColor = "var(--average)";
-    if (data.status === "strong") statusBadgeColor = "var(--strong)";
-    if (data.status === "mastered") statusBadgeColor = "var(--mastered)";
+    // Advanced dynamic segmentation filter block
+    if (currentFilterValue !== "all") {
+      if (currentFilterType === "priority") {
+        const itemPriority = data.priority || "medium";
+        if (itemPriority !== currentFilterValue) return;
+      } else {
+        if (data.status !== currentFilterValue) return;
+      }
+    }
+
+    renderedCount++;
+
+    // Color code metrics rendering logic
+    let statusColor = "var(--weak)";
+    if (data.status === "average") statusColor = "var(--average)";
+    if (data.status === "strong") statusColor = "var(--strong)";
+    if (data.status === "mastered") statusColor = "var(--mastered)";
+
+    const priorityColor = data.priority === "high" ? "var(--weak)" : data.priority === "low" ? "var(--mastered)" : "var(--average)";
 
     html += `
-      <div class="chapter-card" onclick="showChapterEditModal('${name.replace(/'/g, "\\'")}')" style="cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; border-left: 4px solid ${statusBadgeColor};">
-        <div>
-          <div class="chapter-title" style="font-size:0.95rem; line-height:1.3; color:#fff; margin:0;">${name}</div>
-          <small style="opacity:0.6; font-size:0.8rem;">${data.subject}</small>
-        </div>
-        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:0.75rem; background:var(--card2); padding:2px 6px; border-radius:6px; color:#38bdf8;">⚡ P: ${data.pyq || 0}</span>
-          <span style="font-size:0.7rem; font-weight:bold; color:${statusBadgeColor}; text-transform:uppercase;">${data.status}</span>
+      <div class="chapter-card" onclick="showChapterEditModal('${name.replace(/'/g, "\\'")}')" style="border-left: 5px solid ${statusColor};">
+        <div class="chapter-title" style="color:#fff; font-size:0.95rem;">${name}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; opacity:0.6; margin-top:8px;">
+          <span>${data.subject}</span>
+          <span style="color:${priorityColor}; font-weight:900; text-transform:uppercase; letter-spacing:0.5px;">
+            ${data.priority === 'high' ? '🔥' : data.priority === 'low' ? '❄️' : '⚡'} ${data.priority || 'medium'}
+          </span>
         </div>
       </div>
     `;
   });
 
-  grid.innerHTML = html || `<div style="grid-column:1/-1; text-align:center; padding:20px; opacity:0.5;">No Chapters Found</div>`;
-  
-  const counterEl = document.getElementById("chapter-counts");
-  if (counterEl) counterEl.innerText = `(${matchCount})`;
+  if (items.length === 0) {
+    grid.innerHTML = `<div style="grid-column: span 2; text-align:center; opacity:0.4; padding:20px; font-size:0.9rem;">No entries found. Add a custom chapter above to start.</div>`;
+    if (countLabel) countLabel.textContent = "(0)";
+    return;
+  }
+
+  grid.innerHTML = html || `<div style="grid-column: span 2; text-align:center; opacity:0.4; padding:20px; font-size:0.9rem;">No items match this active filter option.</div>`;
+  if (countLabel) countLabel.textContent = `(${renderedCount})`;
 }
 
+function handleAddCustomChapter() {
+  const nameInput = document.getElementById("custom-chapter-name");
+  const subjectSelect = document.getElementById("custom-chapter-subject");
+  
+  if (!nameInput || !nameInput.value.trim()) {
+    alert("Please enter a valid chapter name structure first.");
+    return;
+  }
+
+  const name = nameInput.value.trim();
+  const subject = subjectSelect.value;
+
+  if (window.appData.chapters[name]) {
+    alert("A chapter entry with this exact name configuration already exists.");
+    return;
+  }
+
+  // Append new dataset schema record path
+  window.appData.chapters[name] = {
+    subject: subject,
+    status: "weak",
+    priority: "medium",
+    pyq: 0,
+    revision1: false,
+    revision2: false,
+    revision3: false,
+    lastRevised: null
+  };
+
+  if (typeof window.saveData === "function") window.saveData();
+  if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
+  if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
+
+  nameInput.value = "";
+  renderChapterGrid();
+}
+
+function showChapterEditModal(chName) {
+  const ch = window.appData.chapters[chName];
+  if (!ch) return;
+
+  const modalHTML = `
+    <div style="text-align:left; color:#fff;">
+      <h3 style="margin-top:0; color:var(--accent); font-weight:900; line-height:1.2;">${chName}</h3>
+      <p style="font-size:0.8rem; opacity:0.5; margin-bottom:15px;">Submodule tracking panel config</p>
+      
+      <label style="font-size:0.85rem; font-weight:bold; color:#94a3b8;">PREPARATION STATUS</label>
+      <select id="edit-ch-status" style="margin-bottom:12px;">
+        <option value="weak" ${ch.status === 'weak' ? 'selected' : ''}>Weak (Needs Core Fix)</option>
+        <option value="average" ${ch.status === 'average' ? 'selected' : ''}>Average (Formula Ready)</option>
+        <option value="strong" ${ch.status === 'strong' ? 'selected' : ''}>Strong (PYQ Confident)</option>
+        <option value="mastered" ${ch.status === 'mastered' ? 'selected' : ''}>Mastered (Exam Ready)</option>
+      </select>
+
+      <label style="font-size:0.85rem; font-weight:bold; color:#94a3b8;">EXAM WEIGHTAGE PRIORITY</label>
+      <select id="edit-ch-priority" style="margin-bottom:12px;">
+        <option value="high" ${ch.priority === 'high' ? 'selected' : ''}>High Priority (High-Yield Tracker)</option>
+        <option value="medium" ${(ch.priority || 'medium') === 'medium' ? 'selected' : ''}>Medium Priority (Balanced Run)</option>
+        <option value="low" ${ch.priority === 'low' ? 'selected' : ''}>Low Priority (Low Weightage)</option>
+      </select>
+
+      <label style="font-size:0.85rem; font-weight:bold; color:#94a3b8;">PYQs SOLVED COUNT</label>
+      <input type="number" id="edit-ch-pyq" value="${ch.pyq || 0}" min="0" style="margin-bottom:15px;">
+
+      <div style="background:var(--card2); padding:12px; border-radius:12px; margin-bottom:15px;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="edit-ch-r1" ${ch.revision1 ? 'checked' : ''}>
+          <span>Revision Stage 1 (Short Notes Complete)</span>
+        </div>
+        <div class="checkbox-row" style="margin-top:10px;">
+          <input type="checkbox" id="edit-ch-r2" ${ch.revision2 ? 'checked' : ''}>
+          <span>Revision Stage 2 (Timed Drilling Done)</span>
+        </div>
+        <div class="checkbox-row" style="margin-top:10px;">
+          <input type="checkbox" id="edit-ch-r3" ${ch.revision3 ? 'checked' : ''}>
+          <span>Revision Stage 3 (Crucial PYQ Review)</span>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button onclick="hideModal()" style="background:#475569; margin:0;">Dismiss</button>
+        <button onclick="saveChapterEdits('${chName.replace(/'/g, "\\'")}')" style="background:var(--accent); font-weight:bold; margin:0;">Update Parameters</button>
+      </div>
+    </div>
+  `;
+
+  if (typeof window.showModal === "function") window.showModal(modalHTML);
+}
+
+function saveChapterEdits(chName) {
+  const ch = window.appData.chapters[chName];
+  if (!ch) return;
+
+  const newStatus = document.getElementById("edit-ch-status").value;
+  const newPriority = document.getElementById("edit-ch-priority").value;
+  const newPyq = parseInt(document.getElementById("edit-ch-pyq").value) || 0;
+  
+  const r1 = document.getElementById("edit-ch-r1").checked;
+  const r2 = document.getElementById("edit-ch-r2").checked;
+  const r3 = document.getElementById("edit-ch-r3").checked;
+
+  // Timestamps tracking check updates
+  if (r1 !== ch.revision1 || r2 !== ch.revision2 || r3 !== ch.revision3 || newStatus !== ch.status) {
+    ch.lastRevised = new Date().toISOString().split("T")[0];
+  }
+
+  ch.status = newStatus;
+  ch.priority = newPriority;
+  ch.pyq = newPyq;
+  ch.revision1 = r1;
+  ch.revision2 = r2;
+  ch.revision3 = r3;
+
+  if (typeof window.saveData === "function") window.saveData();
+  if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
+  if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
+  if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision();
+  if (typeof window.renderFullMasterDirectory === "function") window.renderFullMasterDirectory();
+
+  if (typeof window.hideModal === "function") window.hideModal();
+  renderChapterGrid();
+}
+
+// Bind methods securely onto the parent browser layer window interface
+window.initChapterGridSystem = initChapterGridSystem;
+window.renderChapterGrid = renderChapterGrid;
 window.showChapterEditModal = showChapterEditModal;
-window.processChapterSave = processChapterSave;
-window.renderChaptersList = renderChaptersList;
+window.saveChapterEdits = saveChapterEdits;
