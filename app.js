@@ -133,15 +133,16 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 🔥 NEW HEADER INTEGRATION: MINI RANK ENGINE & INTERACTIVE MODAL OVERLAY
+// 🔥 FIXED METRIC RE-ROUTE: TARGETS CENTRAL PYQ GRID CARD INSTEAD OF TOP TEXT EMOJIS
 function renderTotalPYQsAndMilestones() {
-  // Clear any leftover legacy elements from your previous iteration to avoid double-rendering
-  document.getElementById("nexus-pyq-achievement-widget")?.remove();
+  // Clear any leftovers from top header nodes
+  document.getElementById("nexus-inline-rank-badge")?.remove();
 
-  const titleHeader = document.getElementById("nexus-app-title");
-  if (!titleHeader) return;
+  const centralCardBtn = document.getElementById("nexus-pyq-card-button");
+  const counterDisplay = document.getElementById("dashboard-pyq-counter-value");
+  if (!centralCardBtn || !counterDisplay) return;
 
-  // 1. Calculate cumulative sum parameters matching ch.pyq strictly
+  // 1. Double-key database scan matching ch.pyq strictly
   let totalPYQs = 0;
   Object.values(window.appData.chapters || {}).forEach(ch => {
     if (ch) {
@@ -153,7 +154,7 @@ function renderTotalPYQsAndMilestones() {
     }
   });
 
-  // 2. Compute current rank bracket tier structure
+  // 2. Compute dynamic rank bracket status
   let rankEmoji = "🥉";
   let rankTitle = "Rookie";
   if (totalPYQs >= 1000) { rankEmoji = "👑"; rankTitle = "Nexus God"; }
@@ -161,28 +162,15 @@ function renderTotalPYQsAndMilestones() {
   else if (totalPYQs >= 500) { rankEmoji = "🥇"; rankTitle = "Slayer"; }
   else if (totalPYQs >= 250) { rankEmoji = "🥈"; rankTitle = "Grinder"; }
 
-  // 3. Inject or update the neat clicking badge exactly to the right of the header title text
-  let inlineTriggerBtn = document.getElementById("nexus-inline-rank-badge");
-  if (!inlineTriggerBtn) {
-    inlineTriggerBtn = document.createElement("span");
-    inlineTriggerBtn.id = "nexus-inline-rank-badge";
-    inlineTriggerBtn.style.marginLeft = "10px";
-    inlineTriggerBtn.style.cursor = "pointer";
-    inlineTriggerBtn.style.fontSize = "1.3rem";
-    inlineTriggerBtn.style.display = "inline-flex";
-    inlineTriggerBtn.style.alignItems = "center";
-    inlineTriggerBtn.style.transition = "transform 0.2s ease";
-    inlineTriggerBtn.title = "View PYQ Rank Metrics Profile";
-    
-    inlineTriggerBtn.onmouseenter = () => inlineTriggerBtn.style.transform = "scale(1.15)";
-    inlineTriggerBtn.onmouseleave = () => inlineTriggerBtn.style.transform = "scale(1)";
-    
-    titleHeader.appendChild(inlineTriggerBtn);
-  }
-  inlineTriggerBtn.textContent = rankEmoji;
+  // Update live dashboard card inner display properties
+  counterDisplay.textContent = totalPYQs;
 
-  // 4. Bind the interactive dashboard pop-up overlay generation logic loop execution
-  inlineTriggerBtn.onclick = function(e) {
+  // Setup hover animations natively to mimic grid elements seamlessly
+  centralCardBtn.onmouseenter = () => centralCardBtn.style.transform = "scale(1.03)";
+  centralCardBtn.onmouseleave = () => centralCardBtn.style.transform = "scale(1)";
+
+  // 3. Bind popup generation directly to the central card button layout click trigger
+  centralCardBtn.onclick = function(e) {
     e.stopPropagation();
     
     const targetStep = 50;
@@ -191,9 +179,8 @@ function renderTotalPYQsAndMilestones() {
     const progressToNext = totalPYQs % targetStep;
     const percentageToNext = Math.min(100, Math.round((progressToNext / targetStep) * 100));
 
-    // Compile milestones achievement dates database history log stamps dynamically
     let historicalRowsHTML = "";
-    const stampDate = new Date().toISOString().split("T")[0]; // Live date synchronization
+    const stampDate = new Date().toISOString().split("T")[0];
 
     for (let i = 1; i <= 20; i++) {
       const milestoneValue = i * targetStep;
@@ -216,7 +203,6 @@ function renderTotalPYQsAndMilestones() {
           <button onclick="document.getElementById('modal-overlay').style.display='none';" style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer; padding:0; margin:0;">✕</button>
         </div>
 
-        <!-- Tier Matrix Bracket Profile Row Layout -->
         <div style="background:#081224; border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:12px; margin-bottom:16px;">
           <div style="font-size:0.72rem; font-weight:bold; opacity:0.5; letter-spacing:1px; margin-bottom:6px;">ACTIVE TIER STATUS</div>
           <div style="display:flex; align-items:center; gap:12px;">
@@ -228,7 +214,6 @@ function renderTotalPYQsAndMilestones() {
           </div>
         </div>
 
-        <!-- Fluid Progression Bar Slider Element -->
         <div style="margin-bottom:20px; background:rgba(255,255,255,0.02); padding:12px; border-radius:12px;">
           <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:6px;">
             <span>Next Target: ${nextMilestoneTarget}</span>
@@ -240,7 +225,6 @@ function renderTotalPYQsAndMilestones() {
           <div style="font-size:0.72rem; opacity:0.5; margin-top:4px; text-align:right;">${progressToNext} / ${targetStep} questions remaining</div>
         </div>
 
-        <!-- Rank Brackets Legend Reference Directory -->
         <div style="margin-bottom:15px;">
           <div style="font-size:0.75rem; font-weight:bold; opacity:0.6; margin-bottom:8px; letter-spacing:0.5px;">RANK TIER MATRIX LEGEND</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; background:rgba(255,255,255,0.02); padding:10px; border-radius:10px;">
@@ -252,7 +236,6 @@ function renderTotalPYQsAndMilestones() {
           </div>
         </div>
 
-        <!-- Chrono Milestone Archives Feed Wrapper Container -->
         <div style="font-size:0.75rem; font-weight:bold; opacity:0.6; margin-bottom:6px; letter-spacing:0.5px;">MILESTONE ACHIEVEMENT RECORD LOGS</div>
         <div style="max-height:160px; overflow-y:auto; padding-right:4px; background:rgba(0,0,0,0.15); padding:8px; border-radius:10px;">
           ${historicalRowsHTML}
@@ -449,4 +432,4 @@ window.fullyTriggerUIRefresh = fullyTriggerUIRefresh;
 window.switchNavigationTab = switchNavigationTab;
 window.renderStreak = renderStreak;
 window.updateActivity = updateActivity;
-window.rende
+window.renderTotalPYQsAndMilestones = renderTotalPYQsAndMilestones;
