@@ -1,9 +1,9 @@
-
 // ==========================================================================
-// JEE NEXUS CRASH-PROOF IMPORT / EXPORT UTILITY LAYER
+// JEE NEXUS IMPORT / EXPORT UTILITY LAYER (KEY ALIGNED)
 // ==========================================================================
 
-// Safeguard function to ensure click bindings stick even on slow mobile loads
+const BACKUP_STORAGE_KEY = "jee_nexus_master_db"; // 👈 EXACT MATCH TO APP.JS
+
 function initBackupSystem() {
   const expBtn = document.getElementById("export-btn");
   const impBtn = document.getElementById("import-btn");
@@ -16,7 +16,6 @@ function initBackupSystem() {
   }
 }
 
-// Run immediately on script load AND on DOM completion for absolute safety
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initBackupSystem);
 } else {
@@ -30,7 +29,7 @@ function triggerDataExport() {
   try {
     const dataToExport = window.appData || appData;
     if (!dataToExport) {
-      alert("Error: Core database not found in memory memory layer.");
+      alert("Error: Core database not found in memory layer.");
       return;
     }
 
@@ -81,7 +80,6 @@ function showImportFormOverlay() {
     </div>
   `;
   
-  // Use core modal engine or deploy emergency fallback hook if layout engine isn't ready
   if (typeof window.showModal === "function") {
     window.showModal(formHTML);
   } else if (typeof showModal === "function") {
@@ -124,7 +122,6 @@ function processDataImportSubmit() {
   try {
     let freshData = JSON.parse(parsedText);
     
-    // Structure schema integrity checks
     if (freshData.chapters && freshData.mocks && freshData.journal) {
       
       // Auto-repair system patch for older backup formats
@@ -135,20 +132,12 @@ function processDataImportSubmit() {
       if (!freshData.futureNotes) freshData.futureNotes = [];
       if (freshData.streak === undefined) freshData.streak = 0;
 
-      // Force apply structural updates safely to local storage arrays
-      const coreSave = window.saveData || saveData;
-      
+      // FIXED: Force saves straight to the updated shared configuration path variable string name
       window.appData = freshData;
-      localStorage.setItem("jee_os_v3", JSON.stringify(freshData));
-      
-      if (typeof coreSave === "function") coreSave();
+      localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(freshData));
       
       if (typeof window.hideModal === "function") window.hideModal();
       else if (typeof hideModal === "function") hideModal();
-      else {
-        const overlay = document.getElementById("modal-overlay");
-        if (overlay) overlay.style.display = "none";
-      }
       
       alert("Database Synchronized & Restored Successfully! Rebooting Nexus Workspace...");
       window.location.reload();
@@ -160,9 +149,6 @@ function processDataImportSubmit() {
   }
 }
 
-// Bind variables explicitly onto global window layer
-window.triggerDataExport = triggerDataExport;
-window.showImportFormOverlay = showImportFormOverlay;
 window.handleBackupFileSelect = handleBackupFileSelect;
 window.processDataImportSubmit = processDataImportSubmit;
 window.initBackupSystem = initBackupSystem;
