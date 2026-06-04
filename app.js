@@ -509,4 +509,46 @@ document.addEventListener("DOMContentLoaded", () => {
   // Restore and display visibility checkboxes
   const states = appData.widgetVisibilityStates || { future: true, clat: true, quest: true };
   const chkFuture = document.getElementById('toggle-widget-future');
-  const chkClat = document.getElementById('toggle-widge
+  const chkClat = document.getElementById('toggle-widget-clat');
+  const chkQuest = document.getElementById('toggle-widget-quest');
+  
+  if (chkFuture) chkFuture.checked = states.future !== false;
+  if (chkClat) chkClat.checked = states.clat !== false;
+  if (chkQuest) chkQuest.checked = states.quest !== false;
+  
+  toggleWidgetVisibility('future', states.future !== false);
+  toggleWidgetVisibility('clat', states.clat !== false);
+  toggleWidgetVisibility('quest', states.quest !== false);
+
+  // Core execution launch sequence
+  const savedPage = sessionStorage.getItem("active_page_v3") || "dashboard-page";
+  openPage(savedPage);
+});
+
+// Secondary sequence to let async child scripts bind smoothly
+setTimeout(() => {
+  safeRun(window.renderSubjectProgress, "renderSubjectProgress");
+  safeRun(window.renderLowestPYQList, "renderLowestPYQList");
+  safeRun(window.renderMotivationCard, "renderMotivationCard");
+  safeRun(window.renderChapterGrid, "renderChapterGrid");
+  safeRun(window.renderJournal, "renderJournal");
+  safeRun(window.renderMocks, "renderMocks");
+  safeRun(window.renderClat, "renderClat");
+  safeRun(window.renderQuestList, "renderQuestList");
+}, 250);
+
+// Global Workspace Core Export Hooks
+window.appData = appData;
+window.saveData = saveData;
+window.updateActivity = updateActivity;
+window.renderStatusCounts = renderStatusCounts;
+window.renderPrepIndex = renderPrepIndex;
+window.renderBacklogRevision = renderBacklogRevision;
+window.renderFullMasterDirectory = renderFullMasterDirectory;
+window.compileMistakeRepository = compileMistakeRepository;
+window.showModal = showModal;
+window.hideModal = hideModal;
+window.safeRun = safeRun;
+window.switchNexusTheme = switchNexusTheme;
+window.toggleWidgetVisibility = toggleWidgetVisibility;
+window.calculateSettingsSyllabusDistribution = calculateSettingsSyllabusDistribution;
