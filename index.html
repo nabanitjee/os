@@ -13,38 +13,19 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script>
-    function loadScriptsInOrder(scripts, callback) {
-      if (scripts.length === 0) return callback();
-      const nextScriptPath = scripts.shift();
-      const scriptElement = document.createElement('script');
-      scriptElement.src = nextScriptPath;
-      scriptElement.onload = () => loadScriptsInOrder(scripts, callback);
-      scriptElement.onerror = () => console.error("Failed to load script: " + nextScriptPath);
-      document.head.appendChild(scriptElement);
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const scriptQueue = [
-        "syllabus.js",
-        "chapters.js",
-        "journal.js",
-        "mocks.js",
-        "clat.js",
-        "futureme.js",
-        "quest.js",
-        "backup.js",
-        "app.js"
-      ];
-      loadScriptsInOrder(scriptQueue, () => {
-        console.log("JEE Nexus Stack Fully Mounted Successfully.");
-      });
-    });
-  </script>
+  <script defer src="syllabus.js"></script>  
+  <script defer src="chapters.js"></script>  
+  <script defer src="journal.js"></script>  
+  <script defer src="mocks.js"></script>  
+  <script defer src="clat.js"></script>  
+  <script defer src="futureme.js"></script> 
+  <script defer src="quest.js"></script> 
+  <script defer src="backup.js"></script>
+  <script defer src="app.js"></script>  
 </head>
 <body>  
 
-  <section id="dashboard-page" class="page">
+  <section id="dashboard-page" class="page active">
     <header class="hero">
       <div class="logo-container">
         <h1 id="nexus-app-title">JEE Nexus</h1>
@@ -224,13 +205,13 @@
   <section id="journal-page" class="page">
     <h2>Daily Journal</h2>
     <input id="journal-search" type="text" placeholder="Search by date..." oninput="renderJournal()">
-    <button id="add-journal-entry" onclick="if(typeof showAddJournalModal === 'function') { showAddJournalModal(); } else { alert('Journal controller booting... please try again.'); }">Add Entry</button>
+    <button id="add-journal-entry">Add Entry</button>
     <div id="journal-list"></div>
   </section>  
 
   <section id="mock-page" class="page">
     <h2>Mock Tests</h2>
-    <button id="add-mock-btn" onclick="if(typeof showAddMockModal === 'function') { showAddMockModal(); } else { alert('Mock engine booting... please try again.'); }">Add Mock</button>
+    <button id="add-mock-btn">Add Mock</button>
 
     <div class="card">
       <h3>Mock Analytics</h3>
@@ -258,7 +239,7 @@
 
   <section id="clat-page" class="page">
     <h2>CLAT Tracker</h2>
-    <button id="add-clat-btn" onclick="if(typeof showAddClatModal === 'function') { showAddClatModal(); } else { alert('CLAT database booting... please try again.'); }">Add CLAT Entry</button>
+    <button id="add-clat-btn">Add CLAT Entry</button>
     <div class="card">
       <h3>Best CLAT Day</h3>
       <div id="best-clat-day">No Data</div>
@@ -268,7 +249,7 @@
 
   <section id="future-page" class="page">
     <h2>Future Me</h2>
-    <button id="add-future-note-btn" onclick="if(typeof showAddFutureNoteModal === 'function') { showAddFutureNoteModal(); } else { alert('Future database booting... please try again.'); }">Add Note</button>
+    <button id="add-future-note-btn">Add Note</button>
     <div id="future-note-list"></div>
   </section>  
 
