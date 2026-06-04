@@ -122,7 +122,7 @@ function renderPrepIndex() {
 
   let totalScore = 0;
   chapters.forEach(ch => {
-    if (ch.status === "weak") totalScore += 25;
+    if (ch.status === "weak") totalScore += 10;
     if (ch.status === "average") totalScore += 50;
     if (ch.status === "strong") totalScore += 75;
     if (ch.status === "mastered") totalScore += 100;
@@ -160,10 +160,10 @@ function renderTotalPYQsAndMilestones() {
   let rankTitle = "Rookie";
   let themeColor = "#38bdf8"; // Light Blue for Rookie
   
-  if (totalPYQs >= 1000) { rankEmoji = "👑"; rankTitle = "Nexus God"; themeColor = "#f59e0b"; } // Amber/Gold
-  else if (totalPYQs >= 750) { rankEmoji = "⚡"; rankTitle = "Monster"; themeColor = "#ef4444"; } // Crimson Red
-  else if (totalPYQs >= 500) { rankEmoji = "🥇"; rankTitle = "Slayer"; themeColor = "#10b981"; } // Emerald Green
-  else if (totalPYQs >= 250) { rankEmoji = "🥈"; rankTitle = "Grinder"; themeColor = "#a855f7"; } // Quantum Purple
+  if (totalPYQs >= 600) { rankEmoji = "👑"; rankTitle = "Nexus God"; themeColor = "#f59e0b"; } // Amber/Gold
+  else if (totalPYQs >= 350) { rankEmoji = "⚡"; rankTitle = "Monster"; themeColor = "#ef4444"; } // Crimson Red
+  else if (totalPYQs >= 200) { rankEmoji = "🥇"; rankTitle = "Slayer"; themeColor = "#10b981"; } // Emerald Green
+  else if (totalPYQs >= 50) { rankEmoji = "🥈"; rankTitle = "Grinder"; themeColor = "#a855f7"; } // Quantum Purple
 
   // 3. Hydrate live layout counters text nodes
   counterDisplay.textContent = totalPYQs;
