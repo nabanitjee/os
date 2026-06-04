@@ -3,7 +3,7 @@
 // ==========================================================================
 
 window.appData = {
-  jeeMainDate: "2027-01-15",
+  jeeMainDate: "2027-01-1",
   jeeAdvancedDate: "",
   chapters: {},
   journal: [],
@@ -30,7 +30,6 @@ function loadData() {
     try {
       const parsed = JSON.parse(raw);
       if (parsed) {
-        // Safe deep merge mechanics
         window.appData.jeeMainDate = parsed.jeeMainDate || "2027-01-15";
         window.appData.jeeAdvancedDate = parsed.jeeAdvancedDate || "";
         window.appData.chapters = parsed.chapters || {};
@@ -100,8 +99,8 @@ function renderStatusCounts() {
   };
 
   const counts = { weak: 0, average: 0, strong: 0, mastered: 0 };
-  Object.values(window.appData.chapters).forEach(ch => {
-    if (counts[ch.status] !== undefined) counts[ch.status]++;
+  Object.values(window.appData.chapters || {}).forEach(ch => {
+    if (ch && counts[ch.status] !== undefined) counts[ch.status]++;
   });
 
   Object.keys(elements).forEach(key => {
@@ -114,7 +113,7 @@ function renderPrepIndex() {
   const text = document.getElementById("prep-percent");
   if (!bar || !text) return;
 
-  const chapters = Object.values(window.appData.chapters);
+  const chapters = Object.values(window.appData.chapters || {});
   if (chapters.length === 0) return;
 
   let totalScore = 0;
@@ -130,7 +129,7 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 5. Dynamic Controller Visibility Toggles (CRASH-PROOF LAYER ADDED)
+// 5. Dynamic Controller Visibility Toggles
 function toggleWidgetVisibility(widgetKey, isVisible) {
   if (window.appData.widgetVisibility[widgetKey] !== undefined) {
     window.appData.widgetVisibility[widgetKey] = isVisible;
@@ -149,13 +148,9 @@ function applyWidgetVisibilityLayouts() {
 
   Object.entries(targets).forEach(([key, element]) => {
     const show = window.appData.widgetVisibility[key] !== false;
-    
-    // Safely shift layout state without breaking execution loops
     if (element) {
       element.style.display = show ? "block" : "none";
     }
-    
-    // Safely update config control checkmarks
     const checkbox = document.getElementById(`toggle-widget-${key}`);
     if (checkbox) {
       checkbox.checked = show;
@@ -174,11 +169,26 @@ function switchNexusTheme(themeClassName) {
   if (activeOrb) activeOrb.classList.add("active-orb");
 }
 
+// Safer, Global UI Refresh Dispatcher
+function fullyTriggerUIRefresh() {
+  try { if (typeof window.renderChapterGrid === "function") window.renderChapterGrid(); } catch(e){}
+  try { if (typeof window.renderStatusCounts === "function") window.renderStatusCounts(); } catch(e){}
+  try { if (typeof window.renderPrepIndex === "function") window.renderPrepIndex(); } catch(e){}
+  try { if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress(); } catch(e){}
+  try { if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList(); } catch(e){}
+  try { if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory(); } catch(e){}
+  try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
+  try { if (typeof window.renderJournal === "function") window.renderJournal(); } catch(e){}
+  try { if (typeof window.renderMocks === "function") window.renderMocks(); } catch(e){}
+  try { if (typeof window.renderClat === "function") window.renderClat(); } catch(e){}
+  try { if (typeof window.renderFutureNotes === "function") window.renderFutureNotes(); } catch(e){}
+  try { if (typeof window.renderQuests === "function") window.renderQuests(); } catch(e){}
+}
+
 // Initialization Entry Points 
 document.addEventListener("DOMContentLoaded", () => {
   loadData();
   
-  // Set values into inputs on configurations tab
   const mainInp = document.getElementById("jee-main-date");
   const advInp = document.getElementById("jee-advanced-date");
   if (mainInp) mainInp.value = window.appData.jeeMainDate || "";
@@ -186,16 +196,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.body.className = window.appData.currentTheme || "theme-blue";
   
-  // Apply visual settings cleanly on boots
   renderDropDay();
   updateCountdowns();
   renderStatusCounts();
   renderPrepIndex();
   applyWidgetVisibilityLayouts();
   
+  // Safe timeout push to let other files register their methods before initial rendering
+  setTimeout(fullyTriggerUIRefresh, 100);
+  
   setInterval(updateCountdowns, 60000);
 
-  // Router Engine Navigation Linker
+  // Router Navigation Interceptor
   const navigationButtons = document.querySelectorAll(".bottom-nav button");
   navigationButtons.forEach(button => {
     button.addEventListener("click", () => {
@@ -216,8 +228,24 @@ document.addEventListener("DOMContentLoaded", () => {
       navigationButtons.forEach(btn => btn.classList.remove("active-nav"));
       button.classList.add("active-nav");
 
+      // Dynamic view controller re-renders on navigation click
       if (targetPageId === "chapters-page" && typeof window.renderChapterGrid === "function") {
         window.renderChapterGrid();
+      }
+      if (targetPageId === "revision-directory-page" && typeof window.renderMasterDirectory === "function") {
+        window.renderMasterDirectory();
+      }
+      if (targetPageId === "journal-page" && typeof window.renderJournal === "function") {
+        window.renderJournal();
+      }
+      if (targetPageId === "mock-page" && typeof window.renderMocks === "function") {
+        window.renderMocks();
+      }
+      if (targetPageId === "clat-page" && typeof window.renderClat === "function") {
+        window.renderClat();
+      }
+      if (targetPageId === "future-page" && typeof window.renderFutureNotes === "function") {
+        window.renderFutureNotes();
       }
     });
   });
@@ -230,3 +258,4 @@ window.switchNexusTheme = switchNexusTheme;
 window.updateCountdowns = updateCountdowns;
 window.renderStatusCounts = renderStatusCounts;
 window.renderPrepIndex = renderPrepIndex;
+window.fullyTriggerUIRefresh = fullyTriggerUIRefresh;
