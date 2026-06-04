@@ -130,7 +130,7 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 5. Dynamic Controller Visibility Toggles
+// 5. Dynamic Controller Visibility Toggles (FIXED CRASH LEAK LOOP)
 function toggleWidgetVisibility(widgetKey, isVisible) {
   if (window.appData.widgetVisibility[widgetKey] !== undefined) {
     window.appData.widgetVisibility[widgetKey] = isVisible;
@@ -148,13 +148,17 @@ function applyWidgetVisibilityLayouts() {
   };
 
   Object.entries(targets).forEach(([key, element]) => {
+    const show = window.appData.widgetVisibility[key] !== false;
+    
+    // Explicitly hide or show card container block safely
     if (element) {
-      const show = window.appData.widgetVisibility[key] !== false;
       element.style.display = show ? "block" : "none";
-      
-      // Update form configurations inside option checklist selectors smoothly
-      const checkbox = document.getElementById(`toggle-widget-${key}`);
-      if (checkbox) checkbox.checked = show;
+    }
+    
+    // Explicitly update checkmarks safely without crash barriers
+    const checkbox = document.getElementById(`toggle-widget-${key}`);
+    if (checkbox) {
+      checkbox.checked = show;
     }
   });
 }
