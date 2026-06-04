@@ -133,49 +133,46 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 🔥 NEW SUB-ENGINE: GLOBAL PYQ TRACKER & MILESTONE ACHIEVEMENT MATRIX
+// 🔥 AUTOMATED SELF-REPAIRING PYQ TRACKER (POSITIONED EXACTLY UNDER THE HERO HEADER)
 function renderTotalPYQsAndMilestones() {
-  const dashboard = document.getElementById("dashboard-page");
-  if (!dashboard) return;
+  const heroSection = document.querySelector(".hero");
+  if (!heroSection) return;
 
-  // 1. Calculate the raw total sums from across the active database chapters
+  // 1. Double-key database scan matching ch.pyq strictly
   let totalPYQs = 0;
   Object.values(window.appData.chapters || {}).forEach(ch => {
-    if (ch && ch.pyqs) {
-      const parsedCount = parseInt(ch.pyqs, 10);
-      if (!isNaN(parsedCount)) totalPYQs += parsedCount;
+    if (ch) {
+      const rawVal = ch.pyq !== undefined ? ch.pyq : ch.pyqs;
+      if (rawVal !== undefined && rawVal !== null) {
+        const parsedCount = parseInt(rawVal, 10);
+        if (!isNaN(parsedCount)) totalPYQs += parsedCount;
+      }
     }
   });
 
-  // 2. Compute dynamic milestone achievements levels (50, 100, 150...)
+  // 2. Compute milestone increments (50, 100, 150...)
   const targetStep = 50;
   const currentLevel = Math.floor(totalPYQs / targetStep);
   const nextMilestoneTarget = (currentLevel + 1) * targetStep;
   const progressToNext = totalPYQs % targetStep;
   const percentageToNext = Math.min(100, Math.round((progressToNext / targetStep) * 100));
 
-  // 3. Look for existing dynamic container or safely inject fresh ones to avoid layout crashes
+  // 3. Find container or safely append exactly below the hero section
   let pyqWidget = document.getElementById("nexus-pyq-achievement-widget");
   if (!pyqWidget) {
     pyqWidget = document.createElement("div");
     pyqWidget.id = "nexus-pyq-achievement-widget";
     pyqWidget.className = "card";
-    pyqWidget.style.margin = "16px 0";
+    pyqWidget.style.margin = "14px 16px"; 
     pyqWidget.style.padding = "16px";
     pyqWidget.style.borderRadius = "14px";
     pyqWidget.style.background = "var(--card1, #101c3d)";
     pyqWidget.style.textAlign = "left";
     
-    // Smoothly insert right after the countdown/header matrix grid elements
-    const insertionPoint = dashboard.querySelector(".metrics-grid") || dashboard.firstChild;
-    if (insertionPoint === dashboard.firstChild) {
-      dashboard.insertBefore(pyqWidget, insertionPoint);
-    } else {
-      insertionPoint.parentNode.insertBefore(pyqWidget, insertionPoint.nextSibling);
-    }
+    heroSection.parentNode.insertBefore(pyqWidget, heroSection.nextSibling);
   }
 
-  // 4. Render layout UI code with localized styling
+  // 4. Render Layout
   let badgesHTML = "";
   if (currentLevel > 0) {
     badgesHTML = `<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">`;
@@ -255,7 +252,7 @@ function updateActivity() {
   window.appData.lastActivityDate = todayStr;
   saveData();
   renderStreak();
-  window.renderTotalPYQsAndMilestones(); // Update dynamic cards immediately
+  window.renderTotalPYQsAndMilestones(); 
 }
 
 // 5. Dynamic Controller Visibility Toggles
@@ -341,7 +338,7 @@ function fullyTriggerUIRefresh() {
   try { if (typeof window.renderQuest === "function") window.renderQuest(); } catch(e){} 
   try { if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); } catch(e){} 
   try { renderStreak(); } catch(e){}
-  try { window.renderTotalPYQsAndMilestones(); } catch(e){} // 👈 Hot-sync PYQ scores
+  try { window.renderTotalPYQsAndMilestones(); } catch(e){} 
 }
 
 // Initialization Entry Points 
@@ -362,8 +359,10 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPrepIndex();
   renderStreak();
   
-  // Failsafe execution initialization anchor metrics
-  try { window.renderTotalPYQsAndMilestones(); } catch(e){}
+  // 🔥 CHRONO-METRIC DELAY: Wait 300ms for syllabus.js database parameters to populate safely before counting
+  setTimeout(() => {
+    try { window.renderTotalPYQsAndMilestones(); } catch(e){}
+  }, 300);
 
   if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); 
   if (typeof window.renderQuest === "function") window.renderQuest(); 
