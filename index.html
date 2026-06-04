@@ -6,7 +6,7 @@
   <title>JEE Nexus</title>  
   <link rel="stylesheet" href="style.css">  
 
-  <link class="apple-touch-icon" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
   <link rel="icon" type="image/png" href="logo.png">
   <meta name="apple-mobile-web-app-title" content="JEE Nexus">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,6 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script defer src="app.js"></script>  
+  <script defer src="syllabus.js"></script>  
   <script defer src="chapters.js"></script>  
   <script defer src="journal.js"></script>  
   <script defer src="mocks.js"></script>  
@@ -147,16 +148,18 @@
     </div>
   </section>  
 
-  <!-- SYLLABUS GRID -->
+  <!-- SYLLABUS GRID OVERVIEW -->
   <section id="chapters-page" class="page">
     <div class="page-header">
       <h2>Chapters <span id="chapter-counts"></span></h2>
     </div>
 
-    <input id="chapter-search" type="text" placeholder="Search chapters...">
+    <input id="chapter-search" type="text" placeholder="Search chapters..." oninput="renderChapterGrid()">
 
     <div class="filter-row">
       <button class="filter-btn active-filter" data-filter-type="status" data-filter="all">All</button>
+      <button class="filter-btn" data-filter-type="exam" data-filter="advanced-only" style="border: 1px dashed var(--neon-purple);">🚀 JEE Advanced Target</button>
+      
       <button class="filter-btn" data-filter-type="status" data-filter="weak">Weak</button>
       <button class="filter-btn" data-filter-type="status" data-filter="average">Average</button>
       <button class="filter-btn" data-filter-type="status" data-filter="strong">Strong</button>
@@ -167,6 +170,12 @@
       <button class="filter-btn" data-filter-type="priority" data-filter="low">❄️ Low</button>
     </div>
 
+    <!-- LIVE ADVANCED PROGRESS METRIC DISPLAYER -->
+    <div class="card" style="background: linear-gradient(135deg, #12203f, #1b113a); border-left: 4px solid var(--neon-purple); margin-bottom: 16px;">
+      <h4 style="margin:0 0 4px 0; font-size:0.95rem; color:#d8b4fe;">🚀 Advanced Milestone Tracker</h4>
+      <p id="advanced-tracker-text" style="font-size:0.85rem; opacity:0.85; margin:0;">Analyse summary status loading...</p>
+    </div>
+
     <div class="card">
       <h3>Add Custom Chapter</h3>
       <input id="custom-chapter-name" placeholder="Chapter Name">
@@ -175,6 +184,10 @@
         <option>Chemistry</option>
         <option>Mathematics</option>
       </select>
+      <div class="checkbox-row" style="margin-bottom: 10px;">
+        <input type="checkbox" id="custom-chapter-adv-only">
+        <span style="font-size:0.85rem;">Mark as Exclusive JEE Advanced Core Chapter</span>
+      </div>
       <button id="add-custom-chapter-btn">Add Chapter</button>
     </div>
 
