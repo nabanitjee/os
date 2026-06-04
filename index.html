@@ -25,7 +25,6 @@
 </head>
 <body>  
 
-  <!-- DASHBOARD FEED -->
   <section id="dashboard-page" class="page active">
     <header class="hero">
       <div class="logo-container">
@@ -117,12 +116,12 @@
       <div id="backlog-revision-list"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="widget-mission-container">
       <h2>Mission Board</h2>
       <div id="mission-board">No active mission.</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="widget-future-container">
       <h2>Message From Future Me</h2>
       <div id="motivation-card">No Future Notes Yet</div>
     </div>
@@ -132,12 +131,12 @@
       <div id="latest-mock">No mocks added yet.</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="widget-clat-container">
       <h2>CLAT This Week</h2>
       <div id="clat-week-hours">0 Hours</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="widget-quest-container">
       <h2>Today's Quest</h2>
       <div id="quest-list">No quest generated.</div>
     </div>
@@ -148,7 +147,6 @@
     </div>
   </section>  
 
-  <!-- SYLLABUS GRID OVERVIEW -->
   <section id="chapters-page" class="page">
     <div class="page-header">
       <h2>Chapters <span id="chapter-counts"></span></h2>
@@ -170,7 +168,6 @@
       <button class="filter-btn" data-filter-type="priority" data-filter="low">❄️ Low</button>
     </div>
 
-    <!-- LIVE ADVANCED PROGRESS METRIC DISPLAYER -->
     <div class="card" style="background: linear-gradient(135deg, #12203f, #1b113a); border-left: 4px solid var(--neon-purple); margin-bottom: 16px;">
       <h4 style="margin:0 0 4px 0; font-size:0.95rem; color:#d8b4fe;">🚀 Advanced Milestone Tracker</h4>
       <p id="advanced-tracker-text" style="font-size:0.85rem; opacity:0.85; margin:0;">Analyse summary status loading...</p>
@@ -194,7 +191,6 @@
     <div id="chapter-grid"></div>
   </section>  
 
-  <!-- REVISION MANAGER -->
   <section id="revision-directory-page" class="page">
     <h2>Master Revision Log</h2>
 
@@ -206,7 +202,6 @@
     <div class="scrollable-directory-container" id="master-directory-scroll-list"></div>
   </section>
 
-  <!-- DAILY JOURNAL -->
   <section id="journal-page" class="page">
     <h2>Daily Journal</h2>
     <input id="journal-search" type="text" placeholder="Search by date..." oninput="renderJournal()">
@@ -214,7 +209,6 @@
     <div id="journal-list"></div>
   </section>  
 
-  <!-- MOCK PERFORMANCES -->
   <section id="mock-page" class="page">
     <h2>Mock Tests</h2>
     <button id="add-mock-btn">Add Mock</button>
@@ -243,7 +237,6 @@
     <div id="mock-list"></div>
   </section>  
 
-  <!-- AUXILIARY HOURLY TRACKER -->
   <section id="clat-page" class="page">
     <h2>CLAT Tracker</h2>
     <button id="add-clat-btn">Add CLAT Entry</button>
@@ -254,18 +247,15 @@
     <div id="clat-list"></div>
   </section>  
 
-  <!-- FUTURE INTEL NOTES -->
   <section id="future-page" class="page">
     <h2>Future Me</h2>
     <button id="add-future-note-btn">Add Note</button>
     <div id="future-note-list"></div>
   </section>  
 
-  <!-- SETTINGS CONTROL CENTER -->  
   <section id="settings-page" class="page">
     <h2>Control Center</h2>
 
-    <!-- 1. NEON THEME ACCENT SWITCHER -->
     <div class="card">
       <h3>🎨 UI Accent Theme Changer</h3>
       <p style="font-size:0.8rem; opacity:0.6; margin-bottom:12px;">Switch the primary neon aura of your dashboard environment on the fly.</p>
@@ -277,7 +267,6 @@
       </div>
     </div>
 
-    <!-- 2. CORE EXAM DATE SCHEDULER -->
     <div class="card">
       <h3>📅 Core Exam Target Dates</h3>
       <label style="font-size:0.85rem; color:#94a3b8; font-weight:bold;">JEE Main Date</label>
@@ -286,12 +275,15 @@
       <input id="jee-advanced-date" type="date" onchange="window.appData.jeeAdvancedDate = this.value; window.saveData(); window.updateCountdowns();">
     </div>
 
-    <!-- 3. HOMEPAGE WIDGET LAYOUT CONTROLLER -->
     <div class="card">
       <h3>🎛️ Dashboard Widget Visibility</h3>
       <p style="font-size:0.8rem; opacity:0.6; margin-bottom:12px;">Toggle homepage modules on or off to clean up your study feed.</p>
       <div style="background:var(--card2); padding:4px 12px 12px 12px; border-radius:14px;">
         <div class="checkbox-row">
+          <input type="checkbox" id="toggle-widget-mission" onclick="window.toggleWidgetVisibility('mission', this.checked)">
+          <span>Show Mission Board</span>
+        </div>
+        <div class="checkbox-row" style="margin-top:10px;">
           <input type="checkbox" id="toggle-widget-future" onclick="window.toggleWidgetVisibility('future', this.checked)">
           <span>Show Message From Future Me</span>
         </div>
@@ -306,7 +298,6 @@
       </div>
     </div>
 
-    <!-- 4. SYLLABUS DISTRIBUTION ANALYZER -->
     <div class="card">
       <h3>📊 Syllabus Distribution Balance</h3>
       <div id="settings-distribution-analyzer" style="font-size:0.88rem; line-height:1.5; color:#e2e8f0;">
@@ -314,7 +305,6 @@
       </div>
     </div>
 
-    <!-- SYSTEM DATA BACKUP CONTROLS -->
     <div class="card">
       <h3>💾 System Database Maintenance</h3>
       <div class="action-row" style="gap:10px; margin-top:5px;">
@@ -324,14 +314,12 @@
     </div>
   </section>
 
-  <!-- OVERLAYS & MODALS -->
   <div id="modal-overlay">
     <div id="modal-box">
       <div id="modal-content"></div>
     </div>
   </div>  
 
-  <!-- BOTTOM UTILITY INTERFACE TRACK NAVIGATION -->
   <nav class="bottom-nav">
     <button data-page="dashboard-page">🏠</button>
     <button data-page="chapters-page">📚</button>
