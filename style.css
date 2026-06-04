@@ -1,5 +1,5 @@
 /* ==========================================================================
-   JEE NEXUS V4 MASTER STYLESHEET WITH PRIORITY FILTERS
+   JEE NEXUS V4 MASTER STYLESHEET WITH GRADIENT CONTROLS
    ========================================================================== */
 
 :root {
@@ -13,11 +13,11 @@
   --average: #ffb347;
   --strong: #39d98a;
   --mastered: #6b8cff;
-  
+
   --splash-start: #00f2fe;
   --splash-end: #4facfe;
   --neon-purple: #bd00ff;
-  
+
   /* Timeline status state color mappings */
   --safe-green: #10b981;
   --warning-orange: #f59e0b;
@@ -281,14 +281,12 @@ button:active { transform: scale(.96); }
   transition: all 0.2s ease;
 }
 
-/* Base Active Sub-State configuration values */
 .filter-btn.active-filter {
   background: var(--accent);
   color: #fff;
   box-shadow: 0 4px 12px rgba(79, 140, 255, 0.35);
 }
 
-/* Color Identity Priority Filter Mappings */
 .filter-btn[data-filter-type="priority"][data-filter="high"].active-filter {
   background: var(--weak) !important;
   box-shadow: 0 4px 12px rgba(255, 91, 91, 0.4) !important;
@@ -445,36 +443,37 @@ canvas {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* PERMANENTLY LOCKED NAVIGATION BAR DECK (THEME-IMMUNE) */
 .bottom-nav {
   position: fixed;
-  bottom: 12px; /* Keeps it floating cleanly above the edge */
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 92%; /* Gives it a slight margin on left/right sides */
+  width: 92%;
   max-width: 450px;
-  background: rgba(13, 27, 42, 0.85); /* Your cyber dark translucent backdrop */
+  background: #0d1b2a !important; 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  padding: 6px 8px; /* Reduced vertical padding inside the bar */
+  padding: 6px 8px;
   border-radius: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px; /* Keeps buttons cleanly grouped without expanding the bar widthwise */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  gap: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
   z-index: 9999;
 }
 
 .bottom-nav button {
   flex: 1;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.03) !important;
   border: none;
-  color: #a0aec0;
-  /* Reduced height and padding to make the squares significantly sleeker */
+  color: #718096 !important;
   height: 40px; 
   padding: 0; 
   border-radius: 12px;
-  font-size: 1.1rem; /* Perfectly sized small emojis */
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -483,13 +482,17 @@ canvas {
   margin: 0;
 }
 
-.bottom-nav button:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.04); }
+.bottom-nav button:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.06) !important; }
 
-.bottom-nav button.active-nav {
-  background: linear-gradient(135deg, var(--accent), #2563eb);
-  color: #fff;
+body.theme-blue .bottom-nav button.active-nav,
+body.theme-green .bottom-nav button.active-nav,
+body.theme-violet .bottom-nav button.active-nav,
+body.theme-crimson .bottom-nav button.active-nav,
+.bottom-nav button.active-nav { 
+  background: linear-gradient(135deg, #00f2fe, #4facfe) !important; 
+  color: #fff !important; 
   transform: translateY(-6px);
-  box-shadow: 0 8px 20px rgba(79, 140, 255, 0.35);
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.4) !important;
 }
 
 /* ==========================================================================
@@ -507,8 +510,9 @@ canvas {
   .hero h1 { font-size: 2.3rem; }
   .bottom-nav button { font-size: 1.05rem; }
 }
+
 /* ==========================================================================
-   THEME ACCENT SKINS & SETTINGS GRID COMPONENT UI
+   THEME ACCENT CONFIGURATION ENVIRONMENT
    ========================================================================== */
 
 .theme-orb-container {
@@ -534,43 +538,31 @@ canvas {
   transform: scale(1.08);
 }
 
-/* 
-/* ==========================================================================
-   GRADIENT SKIN ARCHITECTURE & THEME OVERRIDES
-   ========================================================================== */
-
-/* 1. Update the preview orbs to display beautiful blended mixtures */
+/* Preview orbs displaying beautiful blended mixtures */
 .orb-blue { background: linear-gradient(135deg, #00f2fe, #4facfe); }
 .orb-green { background: linear-gradient(135deg, #39d98a, #059669); }
 .orb-violet { background: linear-gradient(135deg, #bd00ff, #7c3aed); }
 .orb-crimson { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
 
-/* 2. Map Core Variable Fallbacks for general UI accents */
+/* Core Variable Fallbacks for general UI accents */
 body.theme-blue { --accent: #4f8cff; }
 body.theme-green { --accent: #39d98a; }
 body.theme-violet { --accent: #bd00ff; }
 body.theme-crimson { --accent: #ff5b5b; }
 
-/* 3. Global Functional Element Adapters (Buttons) */
+/* Global Functional Element Adapters (Standard Buttons) */
 body.theme-blue button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #00f2fe, #4facfe); }
 body.theme-green button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #39d98a, #059669); }
 body.theme-violet button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #bd00ff, #7c3aed); }
 body.theme-crimson button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
 
-/* 4. Global Action Buttons (Add Chapter / Modal Confirmations) */
+/* Global Action Buttons (Add Chapter Layout Core) */
 body.theme-blue #add-custom-chapter-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); }
 body.theme-green #add-custom-chapter-btn { background: linear-gradient(135deg, #39d98a, #059669); }
 body.theme-violet #add-custom-chapter-btn { background: linear-gradient(135deg, #bd00ff, #7c3aed); }
 body.theme-crimson #add-custom-chapter-btn { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
 
-/* 5. Synchronize Navigation Tabs Glow States (LOCKED TO ORIGINAL CYBER BLUE) */
-.bottom-nav button.active-nav { 
-  background: linear-gradient(135deg, #00f2fe, #4facfe) !important; 
-  color: #fff !important; 
-  box-shadow: 0 4px 12px rgba(0, 242, 254, 0.35);
-}
 /* Dynamic visibility toggle handling class */
 .widget-hidden {
   display: none !important;
 }
-
