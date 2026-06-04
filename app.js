@@ -133,7 +133,7 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// INTERACTIVE GRID PYQ CARD TRACKER 
+// 📊 INTERACTIVE CENTRAL PYQ CARD TRACKER ENGINE
 function renderTotalPYQsAndMilestones() {
   document.getElementById("nexus-inline-rank-badge")?.remove();
 
@@ -222,7 +222,7 @@ function renderTotalPYQsAndMilestones() {
         <div style="margin-bottom:15px;">
           <div style="font-size:0.75rem; font-weight:bold; opacity:0.6; margin-bottom:8px; letter-spacing:0.5px;">RANK TIER MATRIX LEGEND</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; background:rgba(255,255,255,0.02); padding:10px; border-radius:10px;">
-            <div style="opacity:${rankTitle==='Rookie'?'1':'0.5'}; font-weight:${rankTitle==='Rookie'?'bold':'normal'};">🥉 Rookie (0+)</div>
+            <div style="opacity:${rankTitle==='Rookie'?'1':'0.5'}; font-weight:${rankTitle==='Rookie'?'bold':'normal'};">🏅 Rookie (0+)</div>
             <div style="opacity:${rankTitle==='Grinder'?'1':'0.5'}; font-weight:${rankTitle==='Grinder'?'bold':'normal'};">🥈 Grinder (250+)</div>
             <div style="opacity:${rankTitle==='Slayer'?'1':'0.5'}; font-weight:${rankTitle==='Slayer'?'bold':'normal'};">🥇 Slayer (500+)</div>
             <div style="opacity:${rankTitle==='Monster'?'1':'0.5'}; font-weight:${rankTitle==='Monster'?'bold':'normal'};">⚡ Monster (750+)</div>
