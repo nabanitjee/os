@@ -251,10 +251,10 @@ function renderTotalPYQsAndMilestones() {
           <div style="font-size:0.75rem; font-weight:bold; opacity:0.6; margin-bottom:8px; letter-spacing:0.5px;">RANK TIER MATRIX LEGEND</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; background:rgba(255,255,255,0.02); padding:10px; border-radius:10px;">
             <div style="opacity:${rankTitle==='Rookie'?'1':'0.5'}; font-weight:${rankTitle==='Rookie'?'bold':'normal'}; color:#38bdf8;">🥉 Rookie (0+)</div>
-            <div style="opacity:${rankTitle==='Grinder'?'1':'0.5'}; font-weight:${rankTitle==='Grinder'?'bold':'normal'}; color:#a855f7;">🥈 Grinder (250+)</div>
-            <div style="opacity:${rankTitle==='Slayer'?'1':'0.5'}; font-weight:${rankTitle==='Slayer'?'bold':'normal'}; color:#10b981;">🥇 Slayer (500+)</div>
-            <div style="opacity:${rankTitle==='Monster'?'1':'0.5'}; font-weight:${rankTitle==='Monster'?'bold':'normal'}; color:#ef4444;">⚡ Monster (750+)</div>
-            <div style="grid-column:span 2; opacity:${rankTitle==='Nexus God'?'1':'0.5'}; font-weight:${rankTitle==='Nexus God'?'bold':'normal'}; text-align:center; margin-top:4px; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px; color:#f59e0b;">👑 Nexus God (1000+)</div>
+            <div style="opacity:${rankTitle==='Grinder'?'1':'0.5'}; font-weight:${rankTitle==='Grinder'?'bold':'normal'}; color:#a855f7;">🥈 Grinder (50+)</div>
+            <div style="opacity:${rankTitle==='Slayer'?'1':'0.5'}; font-weight:${rankTitle==='Slayer'?'bold':'normal'}; color:#10b981;">🥇 Slayer (200+)</div>
+            <div style="opacity:${rankTitle==='Monster'?'1':'0.5'}; font-weight:${rankTitle==='Monster'?'bold':'normal'}; color:#ef4444;">⚡ Monster (350+)</div>
+            <div style="grid-column:span 2; opacity:${rankTitle==='Nexus God'?'1':'0.5'}; font-weight:${rankTitle==='Nexus God'?'bold':'normal'}; text-align:center; margin-top:4px; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px; color:#f59e0b;">👑 Nexus God (600+)</div>
           </div>
         </div>
 
