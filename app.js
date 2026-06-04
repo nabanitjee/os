@@ -1,13 +1,13 @@
-// ==========================================================================
-// JEE NEXUS CORE MODULE V4
-// ==========================================================================
+// =========================
+// JEE NEXUS CORE V4
+// =========================
 
-const STORAGE_KEY = "jee_os_v3";
-const APP_NAME = "JEE Nexus"; // Rebrand string value shortcut!
+const STORAGE_KEY = "jee_nexus_master_db"; // 👈 CRITICAL FIXED UNIFIED KEY
 
-// ==========================================================================
+// =========================
 // STORAGE INITIALIZATION
-// ==========================================================================
+// =========================
+
 
 let appData = JSON.parse(
   localStorage.getItem(STORAGE_KEY)
