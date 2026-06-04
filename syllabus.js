@@ -60,7 +60,6 @@ function initializeSyllabus() {
   if (!window.appData) window.appData = { chapters: {} };
   if (!window.appData.chapters) window.appData.chapters = {};
 
-  // Safely check if database is already populated from app.js loadData()
   const existingKeys = Object.keys(window.appData.chapters);
 
   if (existingKeys.length > 0) {
@@ -77,7 +76,6 @@ function initializeSyllabus() {
     return;
   }
 
-  // Fallback initial core database seeding
   Object.entries(FULL_SYLLABUS).forEach(([subject, chapters]) => {
     chapters.forEach(chapter => {
       let prioritySetting = "medium";
@@ -204,24 +202,22 @@ function getSubjectCounts() {
   return result;
 }
 
-// Loader event listener node
 document.addEventListener("DOMContentLoaded", () => {
-  // Let app.js read state memory from localStorage before validating variables
   setTimeout(() => {
     initializeSyllabus();
-    
+
     try { renderLowestPYQList(); } catch(e){}
     try { renderSubjectProgress(); } catch(e){}
     try { renderSyllabusDistributionBalance(); } catch(e){}
-    
-    // Smoothly synchronize active views without execution freezes
+
     if (typeof window.fullyTriggerUIRefresh === "function") {
       window.fullyTriggerUIRefresh();
     }
   }, 50);
 });
+
 // ==========================================================================
-// ADDITION: MISSING BACKLOG & MASTER DIRECTORY UI RENDER ENGINES
+// CENTRALIZED BACKLOG & SPACED-REPETITION DIRECTORY ENGINES
 // ==========================================================================
 
 function renderBacklogRevision() {
@@ -234,16 +230,14 @@ function renderBacklogRevision() {
     return;
   }
 
-  // Filter out chapters marked as 'weak' or 'average' to prioritize your backlog
   const backlogList = chapters
     .filter(([name, data]) => data.status === "weak" || data.status === "average")
     .sort((a, b) => {
-      // Prioritize High Yield chapters at the top of the backlog queue
       const pA = a[1].priority === "high" ? 3 : a[1].priority === "medium" ? 2 : 1;
       const pB = b[1].priority === "high" ? 3 : b[1].priority === "medium" ? 2 : 1;
       return pB - pA;
     })
-    .slice(0, 5); // Display top 5 urgent backlogs
+    .slice(0, 5);
 
   if (backlogList.length === 0) {
     target.innerHTML = `<div style="color:var(--mastered); font-weight:bold; padding:10px; font-size:0.9rem;">🏆 Zero Backlogs! Everything is in strong shape!</div>`;
@@ -274,49 +268,95 @@ function renderBacklogRevision() {
 function renderMasterDirectory() {
   const statsBox = document.getElementById("directory-recency-stats");
   const listBox = document.getElementById("master-directory-scroll-list");
-  
-  const chapters = Object.values(window.appData.chapters || {});
+
+  const chapters = Object.entries(window.appData.chapters || {});
   if (chapters.length === 0) {
     if (statsBox) statsBox.innerText = "No metrics configuration tracked.";
     return;
   }
 
-  // Calculate quick metrics for Memory Decay block
-  const total = chapters.length;
-  const masteredCount = chapters.filter(c => c.status === "mastered" || c.status === "strong").length;
-  const healthPercent = Math.round((masteredCount / total) * 100);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
+  // Parse strings and compute exact unrevised days interval count
+  const computedChapters = chapters.map(([name, data]) => {
+    let daysOut = 0;
+    
+    if (data.lastRevised) {
+      const lastRevDate = new Date(data.lastRevised);
+      lastRevDate.setHours(0, 0, 0, 0);
+      const diffTime = today - lastRevDate;
+      daysOut = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    } else {
+      daysOut = 99; // Fallback ceiling if never revised
+    }
+
+    if (daysOut < 0) daysOut = 0;
+    return { name, ...data, daysUnrevised: daysOut };
+  });
+
+  // SORTING FILTER: Highest unrevised day counts float to the absolute top
+  computedChapters.sort((a, b) => b.daysUnrevised - a.daysUnrevised);
+
+  // Render Memory Decay Analysis header stats block
+  const criticallyDecayedCount = computedChapters.filter(c => c.daysUnrevised > 21 && c.status !== "mastered").length;
   if (statsBox) {
     statsBox.innerHTML = `
-      🎯 Retained Units: <strong>${masteredCount} / ${total}</strong> (${healthPercent}% Core Retention)<br>
-      ⚠️ Active Decay Warning: <strong>${total - masteredCount}</strong> items require drilling reviews soon.
+      ⚠️ <strong>${criticallyDecayedCount} Chapters</strong> are inside the critical 21+ Days danger window.<br>
+      🚀 Review the top prioritized items immediately to clear the red alerts.
     `;
   }
 
   if (!listBox) return;
-  listBox.innerHTML = "";
-
-  // Sort layout items: display weak entries at top so you face them first
-  const sortedChapters = Object.entries(window.appData.chapters || {})
-    .sort((a, b) => {
-      const order = { weak: 1, average: 2, strong: 3, mastered: 4 };
-      return (order[a[1].status] || 1) - (order[b[1].status] || 1);
-    });
 
   let html = "";
-  sortedChapters.forEach(([name, data]) => {
-    let color = "var(--weak)";
-    if (data.status === "average") color = "var(--average)";
-    if (data.status === "strong") color = "var(--strong)";
-    if (data.status === "mastered") color = "var(--mastered)";
+  computedChapters.forEach(ch => {
+    let statusColor = "var(--weak)";
+    if (ch.status === "average") statusColor = "var(--average)";
+    if (ch.status === "strong") statusColor = "var(--strong)";
+    if (ch.status === "mastered") statusColor = "var(--mastered)";
+
+    // CALENDAR MATRIX COLOR THRESHOLD MAPPINGS
+    let dayBadgeHTML = "";
+    if (ch.daysUnrevised > 21) {
+      const labelText = ch.daysUnrevised === 99 ? "Never Revised" : `${ch.daysUnrevised} days unrevised`;
+      dayBadgeHTML = `<span style="color:#ff4a4a; background:rgba(255,74,74,0.1); border:1px solid rgba(255,74,74,0.2); padding:4px 8px; border-radius:6px; font-weight:bold; font-size:0.75rem;">⚠️ DANGER: ${labelText}</span>`;
+    } 
+    else if (ch.daysUnrevised >= 10 && ch.daysUnrevised <= 21) {
+      dayBadgeHTML = `<span style="color:var(--average); background:rgba(255,179,71,0.1); border:1px solid rgba(255,179,71,0.2); padding:4px 8px; border-radius:6px; font-weight:bold; font-size:0.75rem;">⚡ ALERT: ${ch.daysUnrevised} days</span>`;
+    } 
+    else {
+      dayBadgeHTML = `<span style="color:var(--mastered); background:rgba(57,217,138,0.1); padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:bold;">✨ SAFE: ${ch.daysUnrevised}d ago</span>`;
+    }
 
     html += `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); padding:10px 14px; border-radius:12px; margin-bottom:8px; border-right: 4px solid ${color};">
-        <div>
-          <div style="font-size:0.9rem; font-weight:bold; color:#fff;">${name}</div>
-          <div style="font-size:0.72rem; opacity:0.5; margin-top:2px;">${data.subject} • ${data.pyq || 0} PYQs</div>
+      <div class="directory-card" style="background:var(--card1); padding:12px 16px; border-radius:14px; margin-bottom:10px; border-left: 5px solid ${statusColor}; display:flex; flex-direction:column; gap:8px;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:start;">
+          <div style="max-width:55%;">
+            <h4 style="margin:0; color:#fff; font-size:0.95rem; line-height:1.2;">${ch.name}</h4>
+            <span style="font-size:0.72rem; opacity:0.5; display:block; margin-top:4px;">${ch.subject} • ${ch.pyq || 0} PYQs Solved</span>
+          </div>
+          <div style="text-align:right;">
+            ${dayBadgeHTML}
+          </div>
         </div>
-        <span style="font-size:0.75rem; color:${color}; font-weight:bold; text-transform:uppercase;">${data.status}</span>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; background:var(--card2); padding:6px 10px; border-radius:8px; margin-top:4px;">
+          <div style="display:flex; align-items:center; gap:4px; font-size:0.72rem;">
+            <input type="checkbox" ${ch.revision1 ? 'checked' : ''} disabled style="transform:scale(0.85); pointer-events:none;">
+            <span style="opacity:${ch.revision1 ? '1' : '0.4'}; color:${ch.revision1 ? 'var(--accent)' : '#fff'}">R1: Formula</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:4px; font-size:0.72rem;">
+            <input type="checkbox" ${ch.revision2 ? 'checked' : ''} disabled style="transform:scale(0.85); pointer-events:none;">
+            <span style="opacity:${ch.revision2 ? '1' : '0.4'}; color:${ch.revision2 ? 'var(--accent)' : '#fff'}">R2: Drill</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:4px; font-size:0.72rem;">
+            <input type="checkbox" ${ch.revision3 ? 'checked' : ''} disabled style="transform:scale(0.85); pointer-events:none;">
+            <span style="opacity:${ch.revision3 ? '1' : '0.4'}; color:${ch.revision3 ? 'var(--accent)' : '#fff'}">R3: PYQ</span>
+          </div>
+        </div>
+
       </div>
     `;
   });
@@ -324,7 +364,7 @@ function renderMasterDirectory() {
   listBox.innerHTML = html;
 }
 
-// Map them back to the shared window routing path namespace so app.js can call them
+// Map endpoints back to global window namespace wrappers
 window.renderBacklogRevision = renderBacklogRevision;
 window.renderMasterDirectory = renderMasterDirectory;
 window.initializeSyllabus = initializeSyllabus;
