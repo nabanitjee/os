@@ -1,11 +1,11 @@
-// =========================
-// MOCK PERFORMANCE SYSTEM V4
-// =========================
+// ==========================================================================
+// MOCK PERFORMANCE SYSTEM V4 (WITH INSTANT DASHBOARD RE-RENDERING)
+// ==========================================================================
 
 let performanceCharts = {};
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("add-mock-btn")?.addEventListener("click", showMockForm);
+  document.getElementById("add-mock-btn")?.addEventListener("click", () => showMockForm());
 
   document.querySelectorAll(".bottom-nav button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -29,8 +29,12 @@ function showMockForm(mockId = null) {
   const isEdit = mockId !== null && typeof mockId !== 'object';
   let mock = { examName: "", maxMarks: 300, physics: "", chemistry: "", maths: "", remarks: "", errorLog: "" };
 
+  // Safety fallback allocation checks
+  if (!window.appData) window.appData = { mocks: [] };
+  if (!window.appData.mocks) window.appData.mocks = [];
+
   if (isEdit) {
-    const found = appData.mocks.find(m => m.id === Number(mockId));
+    const found = window.appData.mocks.find(m => m.id === Number(mockId));
     if (found) mock = found;
   }
 
@@ -75,15 +79,28 @@ function showMockForm(mockId = null) {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0;">Cancel</button>
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0;">Cancel</button>
         <button onclick="processMockFormSubmit(${isEdit ? mock.id : null})" style="background:var(--accent); margin:0; font-weight:bold;">Save Entry</button>
       </div>
     </div>
   `;
-  showModal(formHTML);
+  
+  if (typeof showModal === "function") {
+    showModal(formHTML);
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    const content = document.getElementById("modal-content");
+    if (overlay && content) {
+      content.innerHTML = formHTML;
+      overlay.style.display = "flex";
+    }
+  }
 }
 
 function processMockFormSubmit(existingId = null) {
+  if (!window.appData) window.appData = { mocks: [] };
+  if (!window.appData.mocks) window.appData.mocks = [];
+
   const name = document.getElementById("f-name").value.trim() || "Untitled Mock";
   const max = Number(document.getElementById("f-max").value) || 300;
   const p = Number(document.getElementById("f-p").value) || 0;
@@ -94,14 +111,14 @@ function processMockFormSubmit(existingId = null) {
   const calcTotal = p + c + m;
 
   if (existingId) {
-    const item = appData.mocks.find(mock => mock.id === existingId);
+    const item = window.appData.mocks.find(mock => mock.id === existingId);
     if (item) {
       item.examName = name; item.maxMarks = max;
       item.physics = p; item.chemistry = c; item.maths = m;
       item.total = calcTotal; item.remarks = rem; item.errorLog = err;
     }
   } else {
-    appData.mocks.push({
+    window.appData.mocks.push({
       id: Date.now(), date: new Date().toISOString().split("T")[0],
       examName: name, maxMarks: max, physics: p, chemistry: c, maths: m,
       total: calcTotal, remarks: rem, errorLog: err
@@ -109,15 +126,41 @@ function processMockFormSubmit(existingId = null) {
     if (typeof updateActivity === "function") updateActivity();
   }
 
-  saveData();
-  hideModal();
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
+  if (typeof hideModal === "function") {
+    hideModal();
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    if (overlay) overlay.style.display = "none";
+  }
+
   refreshMockUI();
+
+  // CRITICAL HOT FIX: Update dashboard metrics layout immediately on save
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function deleteMock(id) {
-  appData.mocks = appData.mocks.filter(mock => mock.id !== id);
-  saveData();
+  window.appData.mocks = window.appData.mocks.filter(mock => mock.id !== id);
+  
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
   refreshMockUI();
+
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function editMock(id) { showMockForm(id); }
@@ -126,12 +169,14 @@ function renderLatestMock() {
   const box = document.getElementById("latest-mock");
   if (!box) return;
 
-  if (appData.mocks.length === 0) {
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+
+  if (baseList.length === 0) {
     box.innerHTML = "No mocks added yet.";
     return;
   }
 
-  const latest = appData.mocks[appData.mocks.length - 1];
+  const latest = baseList[baseList.length - 1];
   box.innerHTML = `
     <strong>${latest.examName}</strong>: ${latest.total} / ${latest.maxMarks}<br>
     <small style="opacity:0.8;">P: ${latest.physics} | C: ${latest.chemistry} | M: ${latest.maths}</small>
@@ -143,7 +188,8 @@ function renderMocks() {
   if (!container) return;
 
   let html = "";
-  const sorted = [...appData.mocks].sort((a, b) => b.id - a.id);
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  const sorted = [...baseList].sort((a, b) => b.id - a.id);
 
   sorted.forEach(mock => {
     html += `
@@ -166,32 +212,36 @@ function renderMocks() {
     `;
   });
 
-  container.innerHTML = html || `<div class="card">No Mock Tests Added</div>`;
+  container.innerHTML = html || `<div class="card" style="opacity:0.5; text-align:center; padding:20px;">No Mock Tests Added</div>`;
 }
 
 function getSubjectAverage(subjectKey) {
-  if (!appData.mocks || appData.mocks.length === 0) return 0;
-  const sum = appData.mocks.reduce((acc, m) => {
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  if (baseList.length === 0) return 0;
+  const sum = baseList.reduce((acc, m) => {
     const score = m[subjectKey] !== undefined ? m[subjectKey] : (m[subjectKey.toLowerCase()] || 0);
     return acc + score;
   }, 0);
-  return Math.round(sum / appData.mocks.length);
+  return Math.round(sum / baseList.length);
 }
 
 function getAverageMockScore() {
-  if (!appData.mocks || appData.mocks.length === 0) return 0;
-  return Math.round(appData.mocks.reduce((sum, m) => sum + m.total, 0) / appData.mocks.length);
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  if (baseList.length === 0) return 0;
+  return Math.round(baseList.reduce((sum, m) => sum + m.total, 0) / baseList.length);
 }
 
 function getBestMockScore() {
-  if (!appData.mocks || appData.mocks.length === 0) return 0;
-  return Math.max(...appData.mocks.map(m => m.total));
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  if (baseList.length === 0) return 0;
+  return Math.max(...baseList.map(m => m.total));
 }
 
 function getLatestMockTrend() {
-  if (!appData.mocks || appData.mocks.length < 2) return "No Trend";
-  const latest = appData.mocks[appData.mocks.length - 1];
-  const previous = appData.mocks[appData.mocks.length - 2];
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  if (baseList.length < 2) return "No Trend";
+  const latest = baseList[baseList.length - 1];
+  const previous = baseList[baseList.length - 2];
   const diff = latest.total - previous.total;
   return diff > 0 ? `📈 +${diff}` : diff < 0 ? `📉 ${diff}` : "➖ 0";
 }
@@ -218,8 +268,9 @@ function buildSingleChart(ctxId, labelText, dataPoints, strokeColor) {
 
   if (performanceCharts[ctxId]) { performanceCharts[ctxId].destroy(); }
 
-  const orderedData = [...appData.mocks].sort((a, b) => a.id - b.id);
-  
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  const orderedData = [...baseList].sort((a, b) => a.id - b.id);
+
   performanceCharts[ctxId] = new Chart(canvas, {
     type: 'line',
     data: {
@@ -242,11 +293,18 @@ function buildSingleChart(ctxId, labelText, dataPoints, strokeColor) {
 }
 
 function initMockCharts() {
-  if (typeof Chart === "undefined" || !appData.mocks || appData.mocks.length === 0) return;
+  const baseList = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  if (typeof Chart === "undefined" || baseList.length === 0) return;
   buildSingleChart('chart-overall', 'Overall Score History', m => m.total, '#4f8cff');
   buildSingleChart('chart-physics', 'Physics History', m => m.physics || m.Physics || 0, 'var(--weak)');
   buildSingleChart('chart-chemistry', 'Chemistry History', m => m.chemistry || m.Chemistry || 0, 'var(--average)');
   buildSingleChart('chart-maths', 'Mathematics History', m => m.maths || m.Maths || 0, 'var(--strong)');
 }
 
+// Global mapping hooks
+window.showAddMockModal = showMockForm;
+
 window.initMockCharts = initMockCharts;
+window.renderMocks = renderMocks;
+window.renderLatestMock = renderLatestMock;
+window.renderMockAnalytics = renderMockAnalytics;
