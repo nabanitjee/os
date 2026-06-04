@@ -6,26 +6,29 @@
   <title>JEE Nexus</title>  
   <link rel="stylesheet" href="style.css">  
 
-  <link rel="apple-touch-icon" href="logo.png">
-  <link rel="icon" type="image/png" href="logo.png">
+  <link class="pwa-node" rel="apple-touch-icon" href="logo.png">
+  <link class="pwa-node" rel="icon" type="image/png" href="logo.png">
   <meta name="apple-mobile-web-app-title" content="JEE Nexus">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
+  <!-- Charting Vendor Frameworks -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script defer src="app.js"></script>  
-  <script defer src="syllabus.js"></script>  
-  <script defer src="chapters.js"></script>  
-  <script defer src="journal.js"></script>  
-  <script defer src="mocks.js"></script>  
-  <script defer src="clat.js"></script>  
-  <script defer src="futureme.js"></script> 
-  <script defer src="quest.js"></script> 
-  <script defer src="backup.js"></script>
+  <!-- Ordered Script Loading Queue to prevent Variable State Dropping -->
+  <script src="syllabus.js"></script>  
+  <script src="chapters.js"></script>  
+  <script src="journal.js"></script>  
+  <script src="mocks.js"></script>  
+  <script src="clat.js"></script>  
+  <script src="futureme.js"></script> 
+  <script src="quest.js"></script> 
+  <script src="backup.js"></script>
+  <script src="app.js"></script>  
 </head>
 <body>  
 
-  <section id="dashboard-page" class="page active">
+  <!-- DASHBOARD PAGE FEED -->
+  <section id="dashboard-page" class="page">
     <header class="hero">
       <div class="logo-container">
         <h1 id="nexus-app-title">JEE Nexus</h1>
@@ -147,6 +150,7 @@
     </div>
   </section>  
 
+  <!-- SYLLABUS GRID OVERVIEW -->
   <section id="chapters-page" class="page">
     <div class="page-header">
       <h2>Chapters <span id="chapter-counts"></span></h2>
@@ -157,7 +161,7 @@
     <div class="filter-row">
       <button class="filter-btn active-filter" data-filter-type="status" data-filter="all">All</button>
       <button class="filter-btn" data-filter-type="exam" data-filter="advanced-only" style="border: 1px dashed var(--neon-purple);">🚀 JEE Advanced Target</button>
-      
+
       <button class="filter-btn" data-filter-type="status" data-filter="weak">Weak</button>
       <button class="filter-btn" data-filter-type="status" data-filter="average">Average</button>
       <button class="filter-btn" data-filter-type="status" data-filter="strong">Strong</button>
@@ -191,6 +195,7 @@
     <div id="chapter-grid"></div>
   </section>  
 
+  <!-- REVISION MANAGER -->
   <section id="revision-directory-page" class="page">
     <h2>Master Revision Log</h2>
 
@@ -202,16 +207,18 @@
     <div class="scrollable-directory-container" id="master-directory-scroll-list"></div>
   </section>
 
+  <!-- DAILY JOURNAL -->
   <section id="journal-page" class="page">
     <h2>Daily Journal</h2>
     <input id="journal-search" type="text" placeholder="Search by date..." oninput="renderJournal()">
-    <button id="add-journal-entry">Add Entry</button>
+    <button id="add-journal-entry" onclick="if(typeof showAddJournalModal === 'function') { showAddJournalModal(); } else { alert('Journal controller booting... please try again.'); }">Add Entry</button>
     <div id="journal-list"></div>
   </section>  
 
+  <!-- MOCK PERFORMANCES -->
   <section id="mock-page" class="page">
     <h2>Mock Tests</h2>
-    <button id="add-mock-btn">Add Mock</button>
+    <button id="add-mock-btn" onclick="if(typeof showAddMockModal === 'function') { showAddMockModal(); } else { alert('Mock engine booting... please try again.'); }">Add Mock</button>
 
     <div class="card">
       <h3>Mock Analytics</h3>
@@ -237,9 +244,10 @@
     <div id="mock-list"></div>
   </section>  
 
+  <!-- AUXILIARY HOURLY TRACKER -->
   <section id="clat-page" class="page">
     <h2>CLAT Tracker</h2>
-    <button id="add-clat-btn">Add CLAT Entry</button>
+    <button id="add-clat-btn" onclick="if(typeof showAddClatModal === 'function') { showAddClatModal(); } else { alert('CLAT database booting... please try again.'); }">Add CLAT Entry</button>
     <div class="card">
       <h3>Best CLAT Day</h3>
       <div id="best-clat-day">No Data</div>
@@ -247,12 +255,14 @@
     <div id="clat-list"></div>
   </section>  
 
+  <!-- FUTURE INTEL NOTES -->
   <section id="future-page" class="page">
     <h2>Future Me</h2>
-    <button id="add-future-note-btn">Add Note</button>
+    <button id="add-future-note-btn" onclick="if(typeof showAddFutureNoteModal === 'function') { showAddFutureNoteModal(); } else { alert('Future database booting... please try again.'); }">Add Note</button>
     <div id="future-note-list"></div>
   </section>  
 
+  <!-- SETTINGS CONTROL CENTER -->
   <section id="settings-page" class="page">
     <h2>Control Center</h2>
 
@@ -314,12 +324,14 @@
     </div>
   </section>
 
+  <!-- POPUP CONTAINER WINDOW LAYER -->
   <div id="modal-overlay">
     <div id="modal-box">
       <div id="modal-content"></div>
     </div>
   </div>  
 
+  <!-- PERSISTENT NAV BAR CONTROL NODES -->
   <nav class="bottom-nav">
     <button data-page="dashboard-page">🏠</button>
     <button data-page="chapters-page">📚</button>
