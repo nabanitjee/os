@@ -1,9 +1,9 @@
 // ==========================================================================
-// JEE NEXUS CORE MODULE V4
+// JEE NEXUS CORE ENGINE V4 (ANALYTICS & FULL DIRECTORY BUNDLE)
 // ==========================================================================
 
-const STORAGE_KEY = "jee_nexus_master_db"; // 👈 CRITICAL FIXED UNIFIED KEY
-const APP_NAME = "JEE Nexus";              // 👈 RESTORED branding string value shortcut
+const STORAGE_KEY = "jee_nexus_master_db";
+const APP_NAME = "JEE Nexus";
 
 // ==========================================================================
 // STORAGE INITIALIZATION
@@ -12,7 +12,7 @@ const APP_NAME = "JEE Nexus";              // 👈 RESTORED branding string valu
 let appData = JSON.parse(
   localStorage.getItem(STORAGE_KEY)
 ) || {
-  jeeMainDate: "2027-01-1",
+  jeeMainDate: "2027-01-15",
   jeeAdvancedDate: "",
   chapters: {},
   journal: [],
@@ -32,7 +32,7 @@ function saveData() {
 }
 
 // ==========================================================================
-// NAVIGATION SYSTEM
+// NAVIGATION PLATFORM SYSTEM
 // ==========================================================================
 
 function openPage(pageId) {
@@ -52,6 +52,11 @@ function openPage(pageId) {
   });
 
   document.querySelector(`[data-page="${pageId}"]`)?.classList.add("active-nav");
+  
+  // Re-trigger localized updates when entering custom navigation screens
+  if (pageId === "revision-directory-page") {
+    renderFullMasterDirectory();
+  }
 }
 
 document.querySelectorAll(".bottom-nav button").forEach(btn => {
@@ -63,7 +68,7 @@ document.querySelectorAll(".bottom-nav button").forEach(btn => {
 });
 
 // ==========================================================================
-// COUNTDOWNS & TIMELINES
+// TIMELINE CALCULATORS
 // ==========================================================================
 
 function getDaysLeft(dateString) {
@@ -86,35 +91,14 @@ function updateCountdowns() {
   }
 }
 
-const mainDateInput = document.getElementById("jee-main-date");
-const advDateInput = document.getElementById("jee-advanced-date");
-
-if (mainDateInput) {
-  mainDateInput.value = appData.jeeMainDate;
-  mainDateInput.addEventListener("change", e => {
-    appData.jeeMainDate = e.target.value;
-    saveData();
-    updateCountdowns();
-  });
-}
-
-if (advDateInput) {
-  advDateInput.value = appData.jeeAdvancedDate;
-  advDateInput.addEventListener("change", e => {
-    appData.jeeAdvancedDate = e.target.value;
-    saveData();
-    updateCountdowns();
-  });
-}
-
 // ==========================================================================
-// PROGRESS LOGIC AGGREGATIONS
+// PROGRESS LOGIC GRIDS
 // ==========================================================================
 
 function renderDropDay() {
   const el = document.getElementById("drop-day");
   if (!el) return;
-  const start = new Date("2026-06-05");
+  const start = new Date("2026-06-03");
   const today = new Date();
   const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
   el.textContent = diff + 1;
@@ -155,10 +139,6 @@ function calculatePrepIndex() {
   return Math.round(total / chapters.length);
 }
 
-// ==========================================================================
-// RENDER HANDLERS
-// ==========================================================================
-
 function renderPrepIndex() {
   const percent = calculatePrepIndex();
   const bar = document.getElementById("prep-progress");
@@ -171,6 +151,11 @@ function renderStatusCounts() {
   let weak = 0, average = 0, strong = 0, mastered = 0;
 
   Object.values(appData.chapters).forEach(ch => {
+    // PASSIVE OVERRIDE: Prevent fake mastery if PYQ proof count is under 15
+    if ((ch.status === "strong" || ch.status === "mastered") && (ch.pyq || 0) < 15) {
+      ch.status = "average"; 
+    }
+
     switch (ch.status) {
       case "weak": weak++; break; 
       case "average": average++; break;
@@ -198,8 +183,88 @@ function renderMissionBoard() {
 }
 
 // ==========================================================================
-// REVISION BACKLOG WIDGET
+// BACKGROUND AUTOMATED PERFORMANCE RED FLAGS
 // ==========================================================================
+
+function evaluatePerformanceRedFlags() {
+  const container = document.getElementById("red-flag-alert-zone");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (!appData.mocks || appData.mocks.length < 3) return;
+
+  // Grab chronological mock data entries
+  const targeted = [...appData.mocks].sort((a,b) => a.id - b.id).slice(-3);
+  const subjects = ["physics", "chemistry", "maths"];
+  
+  let flagHTML = "";
+
+  subjects.forEach(sub => {
+    const s1 = targeted[0][sub] || 0;
+    const s2 = targeted[1][sub] || 0;
+    const s3 = targeted[2][sub] || 0;
+
+    // Trigger flag banner alert if two continuous drops are validated
+    if (s2 < s1 && s3 < s2) {
+      flagHTML += `
+        <div class="performance-red-flag-card">
+          🚨 <strong>SUBJECT RED FLAG ALERT:</strong> Your <strong>${sub.toUpperCase()}</strong> performance sequence has dropped continuously over your last 3 tests (${s1} → ${s2} → ${s3}). Prioritize core syllabus problem solving immediately!
+        </div>
+      `;
+    }
+  });
+
+  container.innerHTML = flagHTML;
+}
+
+// ==========================================================================
+// MISTAKE REPOSITORY CONCENTRATED SUMMARY AGGREGATOR
+// ==========================================================================
+
+function compileMistakeRepository() {
+  if (!appData.mocks || appData.mocks.length === 0) {
+    alert("No mock logs found yet to compile.");
+    return;
+  }
+
+  let logHtml = `<div style="text-align:left; color:#fff; max-height:350px; overflow-y:auto; padding:5px;">
+    <h3 style="color:var(--accent); font-weight:900; margin-top:0;">CONCENTRATED MISTAKE REPOSITORY</h3>
+    <p style="font-size:0.8rem; opacity:0.6; margin-bottom:12px;">Review this complete index before entering exam environments.</p><hr style="border-color:rgba(255,255,255,0.08);">`;
+
+  let cleanMatch = false;
+  [...appData.mocks].sort((a,b) => b.id - a.id).forEach(mock => {
+    if (mock.errorLog && mock.errorLog.trim()) {
+      cleanMatch = true;
+      logHtml += `
+        <div style="margin: 12px 0; padding:10px; background:var(--card2); border-radius:10px;">
+          <strong style="color:var(--average); font-size:0.9rem;">🎯 ${mock.examName} (${mock.date})</strong>
+          <p style="font-size:0.88rem; margin-top:4px; color:#e2e8f0; line-height:1.4;">${mock.errorLog}</p>
+        </div>
+      `;
+    }
+  });
+
+  if (!cleanMatch) logHtml += `<p style="opacity:0.5; padding:15px; text-align:center;">No error tracking notes logged inside your mocks yet.</p>`;
+  logHtml += `<button onclick="hideModal()" style="width:100%; margin-top:10px; background:#475569;">Dismiss Window</button></div>`;
+  
+  showModal(logHtml);
+}
+
+// ==========================================================================
+// STRATEGIC REVISION DIRECTORY ENGINE (SCROLLABLE & priority BASELINE)
+// ==========================================================================
+
+function getTimelineLabelAndColor(lastRevisedString) {
+  if (!lastRevisedString) {
+    return { text: "Never Revised", color: "var(--critical-red)" };
+  }
+  
+  const elapsedDays = Math.floor((new Date() - new Date(lastRevisedString)) / (1000 * 60 * 60 * 24));
+  
+  if (elapsedDays <= 7) return { text: `${elapsedDays}d ago (Safe)`, color: "var(--safe-green)" };
+  if (elapsedDays <= 21) return { text: `${elapsedDays}d ago (Review)`, color: "var(--warning-orange)" };
+  return { text: `${elapsedDays}d ago (Critical)`, color: "var(--critical-red)" };
+}
 
 function renderBacklogRevision() {
   const container = document.getElementById("backlog-revision-list");
@@ -207,7 +272,7 @@ function renderBacklogRevision() {
 
   const items = Object.entries(appData.chapters);
   if (items.length === 0) {
-    container.innerHTML = `<div style="text-align:center; opacity:0.5; padding:10px;">Initialising modules...</div>`;
+    container.innerHTML = `<div style="text-align:center; opacity:0.5; padding:10px;">Initialising metrics...</div>`;
     return;
   }
 
@@ -217,7 +282,6 @@ function renderBacklogRevision() {
       const weight = { high: 3, medium: 2, low: 1 };
       const priorityA = weight[a.priority || "medium"];
       const priorityB = weight[b.priority || "medium"];
-
       if (priorityB !== priorityA) return priorityB - priorityA;
       if (!a.lastRevised) return -1;
       if (!b.lastRevised) return 1;
@@ -229,13 +293,13 @@ function renderBacklogRevision() {
   sortedBacklog.forEach(ch => {
     const priorityClass = ch.priority === "high" ? "high-priority" : ch.priority === "low" ? "low-priority" : "";
     const badgeColor = ch.priority === "high" ? "var(--weak)" : ch.priority === "low" ? "var(--mastered)" : "var(--average)";
-    const dateLabel = ch.lastRevised ? `Last: ${ch.lastRevised}` : "⚠️ Never Revised";
+    const timeline = getTimelineLabelAndColor(ch.lastRevised);
 
     html += `
       <div class="backlog-item ${priorityClass}" onclick="if(typeof showChapterEditModal === 'function') showChapterEditModal('${ch.name.replace(/'/g, "\\'")}')" style="cursor:pointer;">
         <div>
           <strong style="color:#fff; font-size:0.95rem;">${ch.name}</strong><br>
-          <small style="opacity:0.6;">${ch.subject} • ${dateLabel}</small>
+          <small style="opacity:0.6;">${ch.subject} • <span style="color:${timeline.color}; font-weight:bold;">${timeline.text}</span></small>
         </div>
         <span style="background:${badgeColor}; color:#081224; font-size:0.72rem; padding:3px 8px; border-radius:6px; font-weight:bold; text-transform:uppercase;">
           ${ch.priority || "medium"}
@@ -243,29 +307,100 @@ function renderBacklogRevision() {
       </div>
     `;
   });
-
   container.innerHTML = html;
 }
 
-// ==========================================================================
-// SYSTEM MODAL DISPLAY WINDOW HOOKS
-// ==========================================================================
+function renderFullMasterDirectory() {
+  const scrollContainer = document.getElementById("master-directory-scroll-list");
+  const statsBox = document.getElementById("directory-recency-stats");
+  if (!scrollContainer) return;
 
-function showModal(htmlContent) {
-  const overlay = document.getElementById("modal-overlay");
-  const contentBox = document.getElementById("modal-content");
-  if (!overlay || !contentBox) return;
-  contentBox.innerHTML = htmlContent;
-  overlay.style.display = "flex";
+  const items = Object.entries(appData.chapters);
+  if (items.length === 0) {
+    scrollContainer.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5;">No system syllabus data populated. Enter chapters to initialize profiles.</div>`;
+    return;
+  }
+
+  // Complete processing loop sorted by Priority weight metrics, sub-sorted by age duration
+  const fullDirectorySorted = items
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => {
+      const weight = { high: 3, medium: 2, low: 1 };
+      const prA = weight[a.priority || "medium"];
+      const prB = weight[b.priority || "medium"];
+      if (prB !== prA) return prB - prA;
+      if (!a.lastRevised) return -1;
+      if (!b.lastRevised) return 1;
+      return new Date(a.lastRevised) - new Date(b.lastRevised);
+    });
+
+  let totalDecayedCount = 0;
+  let html = "";
+
+  fullDirectorySorted.forEach(ch => {
+    const timeline = getTimelineLabelAndColor(ch.lastRevised);
+    if (!ch.lastRevised || Math.floor((new Date() - new Date(ch.lastRevised)) / (1000 * 60 * 60 * 24)) > 21) {
+      totalDecayedCount++;
+    }
+
+    let statusColor = "var(--weak)";
+    if (ch.status === "average") statusColor = "var(--average)";
+    if (ch.status === "strong") statusColor = "var(--strong)";
+    if (ch.status === "mastered") statusColor = "var(--mastered)";
+
+    const priorityBadgeColor = ch.priority === "high" ? "var(--weak)" : ch.priority === "low" ? "var(--mastered)" : "var(--average)";
+
+    html += `
+      <div class="directory-row-item" onclick="if(typeof showChapterEditModal === 'function') showChapterEditModal('${ch.name.replace(/'/g, "\\'")}')" style="cursor:pointer; border-left:4px solid ${statusColor};">
+        <div style="max-width:60%;">
+          <h4 style="margin:0; color:#fff; font-size:0.95rem; line-height:1.3;">${ch.name}</h4>
+          <span style="font-size:0.75rem; opacity:0.5;">${ch.subject}</span>
+        </div>
+        <div class="directory-meta-side">
+          <span class="timeline-deadline-tag" style="background:${timeline.color}; color:#081224;">${timeline.text}</span>
+          <span style="font-size:0.7rem; color:${priorityBadgeColor}; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px;">🔥 ${ch.priority || "medium"}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  scrollContainer.innerHTML = html;
+  
+  if (statsBox) {
+    statsBox.innerHTML = `
+      🚨 Total Critical/Decayed Chapters: <strong style="color:var(--weak); font-size:1rem;">${totalDecayedCount}</strong> / ${items.length}<br>
+      <span style="font-size:0.8rem; opacity:0.7;">Chapters labeled "Critical" have elapsed past a strict 21-day retention window.</span>
+    `;
+  }
 }
 
-function hideModal() {
-  const overlay = document.getElementById("modal-overlay");
-  if (overlay) overlay.style.display = "none";
+// ==========================================================================
+// COUINTER INITIALIZATION INPUT TRIGGERS
+// ==========================================================================
+
+const mainDateInput = document.getElementById("jee-main-date");
+const advDateInput = document.getElementById("jee-advanced-date");
+
+if (mainDateInput) {
+  mainDateInput.value = appData.jeeMainDate;
+  mainDateInput.addEventListener("change", e => {
+    appData.jeeMainDate = e.target.value;
+    saveData();
+    updateCountdowns();
+  });
+}
+
+if (advDateInput) {
+  advDateInput.value = appData.jeeAdvancedDate;
+  advDateInput.addEventListener("change", e => {
+    appData.jeeAdvancedDate = e.target.value;
+    saveData();
+    updateCountdowns();
+  });
 }
 
 // ==========================================================================
-// RUNTIME SETUP PIPELINE BOOTSTRAP
+// PIPELINE RUNTIME BOOTSTRAP INITIALIZER
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -280,6 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStatusCounts();
   renderMissionBoard();
   renderBacklogRevision();
+  evaluatePerformanceRedFlags();
 
   const savedPage = sessionStorage.getItem("active_page_v3") || "dashboard-page";
   openPage(savedPage);
@@ -298,5 +434,7 @@ window.updateActivity = updateActivity;
 window.renderStatusCounts = renderStatusCounts;
 window.renderPrepIndex = renderPrepIndex;
 window.renderBacklogRevision = renderBacklogRevision;
+window.renderFullMasterDirectory = renderFullMasterDirectory;
+window.compileMistakeRepository = compileMistakeRepository;
 window.showModal = showModal;
 window.hideModal = hideModal;
