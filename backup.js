@@ -74,13 +74,15 @@ function showImportFormOverlay() {
       </div>
       
       <div class="action-row" style="margin-top:15px; display:flex; gap:10px;">
-        <button onclick="hideModal();" style="background:#475569; margin:0; padding:12px 16px; flex:1;">Cancel</button>
-        <button onclick="processDataImportSubmit()" style="background:#b91c1c; margin:0; padding:12px 16px; font-weight:bold; flex:1;">Override & Restore</button>
+        <button onclick="if(typeof window.closeQuestSystemModal === 'function'){ window.closeQuestSystemModal(); } else if(typeof hideModal === 'function'){ hideModal(); }" style="background:#475569; margin:0; padding:12px 16px; flex:1; border:none; color:#fff; border-radius:8px; cursor:pointer; font-weight:bold;">Cancel</button>
+        <button onclick="window.processDataImportSubmit()" style="background:#b91c1c; margin:0; padding:12px 16px; font-weight:bold; flex:1; border:none; color:#fff; border-radius:8px; cursor:pointer;">Override & Restore</button>
       </div>
     </div>
   `;
 
-  if (typeof window.showModal === "function") {
+  if (typeof window.openQuestSystemModal === "function") {
+    window.openQuestSystemModal(formHTML);
+  } else if (typeof window.showModal === "function") {
     window.showModal(formHTML);
   } else if (typeof showModal === "function") {
     showModal(formHTML);
@@ -122,21 +124,24 @@ function processDataImportSubmit() {
   try {
     let freshData = JSON.parse(parsedText);
 
-    if (freshData.chapters && freshData.mocks && freshData.journal) {
+    if (freshData.chapters || freshData.mocks || freshData.journal) {
 
-      // Auto-repair system patch for older backup formats
+      // Failsafe schema structure patch check metrics
       if (!freshData.dailyQuest) {
         freshData.dailyQuest = { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false };
       }
+      if (!freshData.activeMissionsList) freshData.activeMissionsList = [];
+      if (!freshData.completedMissionsLog) freshData.completedMissionsLog = [];
       if (!freshData.clat) freshData.clat = [];
       if (!freshData.futureNotes) freshData.futureNotes = [];
       if (freshData.streak === undefined) freshData.streak = 0;
 
-      // FIXED: Force saves straight to the updated shared configuration path variable string name
+      // Force instant hard synchronization right onto master configurations space
       window.appData = freshData;
       localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(freshData));
 
-      if (typeof window.hideModal === "function") window.hideModal();
+      if (typeof window.closeQuestSystemModal === "function") window.closeQuestSystemModal();
+      else if (typeof window.hideModal === "function") window.hideModal();
       else if (typeof hideModal === "function") hideModal();
 
       alert("Database Synchronized & Restored Successfully! Rebooting Nexus Workspace...");
