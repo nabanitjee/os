@@ -152,25 +152,46 @@ function renderLowestPYQList() {
   });
 }
 
+// UPDATE: SUBJECT-WISE SYLLABUS DISTRIBUTION ANALYSIS ENGINE
 function renderSyllabusDistributionBalance() {
   const target = document.getElementById("settings-distribution-analyzer");
   if (!target) return;
 
   const chapters = Object.values(window.appData.chapters || {});
-  const total = chapters.length;
-  if (!total) {
+  if (chapters.length === 0) {
     target.innerText = "No data configured in profile database.";
     return;
   }
 
-  const high = chapters.filter(c => c.priority === "high").length;
-  const med = chapters.filter(c => c.priority === "medium").length;
-  const low = chapters.filter(c => c.priority === "low").length;
+  // Master tracking matrices counters
+  const matrix = {
+    high: { Physics: 0, Chemistry: 0, Mathematics: 0, total: 0 },
+    medium: { Physics: 0, Chemistry: 0, Mathematics: 0, total: 0 },
+    low: { Physics: 0, Chemistry: 0, Mathematics: 0, total: 0 }
+  };
+
+  chapters.forEach(c => {
+    const p = c.priority || "medium";
+    const sub = c.subject;
+    if (matrix[p] && matrix[p][sub] !== undefined) {
+      matrix[p][sub]++;
+      matrix[p].total++;
+    }
+  });
 
   target.innerHTML = `
-    🔥 High Yield: <strong>${high}</strong> units (${Math.round((high/total)*100)}%)<br>
-    ⚡ Med Yield: <strong>${med}</strong> units (${Math.round((med/total)*100)}%)<br>
-    ❄️ Low Yield: <strong>${low}</strong> units (${Math.round((low/total)*100)}%)
+    <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <span style="color: var(--weak); font-weight: bold; display: block; margin-bottom: 4px;">🔥 HIGH PRIORITY (${matrix.high.total})</span>
+      <span style="opacity: 0.9; font-size: 0.85rem;">P: <strong>${matrix.high.Physics}</strong> | C: <strong>${matrix.high.Chemistry}</strong> | M: <strong>${matrix.high.Mathematics}</strong></span>
+    </div>
+    <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <span style="color: var(--average); font-weight: bold; display: block; margin-bottom: 4px;">⚡ MEDIUM PRIORITY (${matrix.medium.total})</span>
+      <span style="opacity: 0.9; font-size: 0.85rem;">P: <strong>${matrix.medium.Physics}</strong> | C: <strong>${matrix.medium.Chemistry}</strong> | M: <strong>${matrix.medium.Mathematics}</strong></span>
+    </div>
+    <div>
+      <span style="color: var(--mastered); font-weight: bold; display: block; margin-bottom: 4px;">❄️ LOW PRIORITY (${matrix.low.total})</span>
+      <span style="opacity: 0.9; font-size: 0.85rem;">P: <strong>${matrix.low.Physics}</strong> | C: <strong>${matrix.low.Chemistry}</strong> | M: <strong>${matrix.low.Mathematics}</strong></span>
+    </div>
   `;
 }
 
@@ -183,17 +204,15 @@ function getSubjectCounts() {
   return result;
 }
 
-// Fixed execution listener to avoid crashing other components on boot
+// Loader Event Listener Loop
 document.addEventListener("DOMContentLoaded", () => {
   initializeSyllabus();
   
-  // Safe execution delay to let app.js complete its setup first
   setTimeout(() => {
     try { renderLowestPYQList(); } catch(e){}
     try { renderSubjectProgress(); } catch(e){}
     try { renderSyllabusDistributionBalance(); } catch(e){}
     
-    // Explicit trigger to populate the missing backlog view safely
     if (typeof window.fullyTriggerUIRefresh === "function") {
       window.fullyTriggerUIRefresh();
     }
