@@ -563,8 +563,9 @@ body.theme-green #add-custom-chapter-btn { background: linear-gradient(135deg, #
 body.theme-violet #add-custom-chapter-btn { background: linear-gradient(135deg, #bd00ff, #7c3aed); }
 body.theme-crimson #add-custom-chapter-btn { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
 
-/* 5. Synchronize Navigation Tabs Glow States */
-body.theme-blue .bottom-nav button.active-nav { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #fff; }
-body.theme-green .bottom-nav button.active-nav { background: linear-gradient(135deg, #39d98a, #059669); color: #fff; }
-body.theme-violet .bottom-nav button.active-nav { background: linear-gradient(135deg, #bd00ff, #7c3aed); color: #fff; }
-body.theme-crimson .bottom-nav button.active-nav { background: linear-gradient(135deg, #ff5b5b, #ef4444); color: #fff; }
+/* 5. Synchronize Navigation Tabs Glow States (LOCKED TO ORIGINAL CYBER BLUE) */
+.bottom-nav button.active-nav { 
+  background: linear-gradient(135deg, #00f2fe, #4facfe) !important; 
+  color: #fff !important; 
+  box-shadow: 0 4px 12px rgba(0, 242, 254, 0.35);
+}
