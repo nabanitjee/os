@@ -3,7 +3,7 @@
 // ==========================================================================
 
 window.appData = {
-  jeeMainDate: "2027-01-15",
+  jeeMainDate: "2027-01-01",
   jeeAdvancedDate: "",
   chapters: {},
   journal: [],
