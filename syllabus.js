@@ -278,27 +278,24 @@ function renderMasterDirectory() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Parse strings and compute exact unrevised days interval count
   const computedChapters = chapters.map(([name, data]) => {
     let daysOut = 0;
-    
+
     if (data.lastRevised) {
       const lastRevDate = new Date(data.lastRevised);
       lastRevDate.setHours(0, 0, 0, 0);
       const diffTime = today - lastRevDate;
       daysOut = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     } else {
-      daysOut = 99; // Fallback ceiling if never revised
+      daysOut = 99; 
     }
 
     if (daysOut < 0) daysOut = 0;
     return { name, ...data, daysUnrevised: daysOut };
   });
 
-  // SORTING FILTER: Highest unrevised day counts float to the absolute top
   computedChapters.sort((a, b) => b.daysUnrevised - a.daysUnrevised);
 
-  // Render Memory Decay Analysis header stats block
   const criticallyDecayedCount = computedChapters.filter(c => c.daysUnrevised > 21 && c.status !== "mastered").length;
   if (statsBox) {
     statsBox.innerHTML = `
@@ -311,26 +308,25 @@ function renderMasterDirectory() {
 
   let html = "";
   computedChapters.forEach(ch => {
-    let statusColor = "var(--weak)";
-    if (ch.status === "average") statusColor = "var(--average)";
-    if (ch.status === "strong") statusColor = "var(--strong)";
-    if (ch.status === "mastered") statusColor = "var(--mastered)";
-
-    // CALENDAR MATRIX COLOR THRESHOLD MAPPINGS
     let dayBadgeHTML = "";
+    let cornerStripeColor = "var(--weak)"; 
+
     if (ch.daysUnrevised > 21) {
       const labelText = ch.daysUnrevised === 99 ? "Never Revised" : `${ch.daysUnrevised} days unrevised`;
       dayBadgeHTML = `<span style="color:#ff4a4a; background:rgba(255,74,74,0.1); border:1px solid rgba(255,74,74,0.2); padding:4px 8px; border-radius:6px; font-weight:bold; font-size:0.75rem;">⚠️ DANGER: ${labelText}</span>`;
+      cornerStripeColor = "#ff4a4a"; 
     } 
     else if (ch.daysUnrevised >= 10 && ch.daysUnrevised <= 21) {
       dayBadgeHTML = `<span style="color:var(--average); background:rgba(255,179,71,0.1); border:1px solid rgba(255,179,71,0.2); padding:4px 8px; border-radius:6px; font-weight:bold; font-size:0.75rem;">⚡ ALERT: ${ch.daysUnrevised} days</span>`;
+      cornerStripeColor = "var(--average)"; 
     } 
     else {
       dayBadgeHTML = `<span style="color:var(--mastered); background:rgba(57,217,138,0.1); padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:bold;">✨ SAFE: ${ch.daysUnrevised}d ago</span>`;
+      cornerStripeColor = "var(--mastered)"; 
     }
 
     html += `
-      <div class="directory-card" style="background:var(--card1); padding:12px 16px; border-radius:14px; margin-bottom:10px; border-left: 5px solid ${statusColor}; display:flex; flex-direction:column; gap:8px;">
+      <div class="directory-card" style="background:var(--card1); padding:12px 16px; border-radius:14px; margin-bottom:10px; border-left: 5px solid ${cornerStripeColor}; display:flex; flex-direction:column; gap:8px;">
         
         <div style="display:flex; justify-content:space-between; align-items:start;">
           <div style="max-width:55%;">
