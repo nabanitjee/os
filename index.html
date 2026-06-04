@@ -6,16 +6,13 @@
   <title>JEE Nexus</title>  
   <link rel="stylesheet" href="style.css">  
 
-  <!-- Device WebApp Home-Screen PWA Shortcuts -->
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="icon" type="image/png" href="logo.png">
   <meta name="apple-mobile-web-app-title" content="JEE Nexus">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
-  <!-- Chart.js Engine for Performance Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Application Modules -->
   <script defer src="app.js"></script>  
   <script defer src="syllabus.js"></script>  
   <script defer src="chapters.js"></script>  
@@ -28,15 +25,12 @@
 </head>
 <body>  
 
-  <!-- DASHBOARD -->  
   <section id="dashboard-page" class="page active">
     <header class="hero">
-      <!-- Permanent Dynamic Text Title (No Images) -->
       <div class="logo-container">
         <h1 id="nexus-app-title">JEE Nexus</h1>
       </div>
 
-      <!-- Modern Side-by-Side Neon Countdown Display -->
       <div class="nexus-countdown-container">
         <div class="nexus-countdown-card main-glow">
           <span class="nexus-label">JEE MAIN</span>
@@ -53,7 +47,8 @@
       </div>
     </header>
 
-    <!-- DROP YEAR INFO -->
+    <div id="red-flag-alert-zone"></div>
+
     <div class="stats-grid">
       <div class="stat-card">
         <h2 id="drop-day">0</h2>
@@ -65,7 +60,6 @@
       </div>
     </div>
 
-    <!-- STATUS COUNTS -->
     <div class="stats-grid">
       <div class="stat-card weak">
         <h2 id="weak-count">0</h2>
@@ -85,7 +79,6 @@
       </div>
     </div>
 
-    <!-- PREPARATION INDEX -->
     <div class="card">
       <h2>Preparation Index</h2>
       <div class="progress-bar">
@@ -94,7 +87,6 @@
       <span id="prep-percent">0%</span>
     </div>
 
-    <!-- SUBJECT PROGRESS -->
     <div class="card">
       <h2>Subject Progress</h2>
       <div class="subject-progress">
@@ -119,53 +111,42 @@
       </div>
     </div>
 
-    <!-- STRATEGIC REVISION BACKLOG WIDGET -->
     <div class="card">
-      <h2>⚠️ Revision Backlog</h2>
-      <p style="font-size:0.85rem; opacity:0.6; margin:-8px 0 12px 0;">Chapters needing urgent review based on exam importance priority and oldest revision timeline.</p>
-      <div id="backlog-revision-list">
-        <!-- Dynamically injected via app.js -->
-      </div>
+      <h2>⚠️ Urgent Backlog Focus</h2>
+      <div id="backlog-revision-list"></div>
     </div>
 
-    <!-- MISSION -->
     <div class="card">
       <h2>Mission Board</h2>
       <div id="mission-board">No active mission.</div>
     </div>
 
-    <!-- FUTURE ME WIDGET -->
     <div class="card">
       <h2>Message From Future Me</h2>
       <div id="motivation-card">No Future Notes Yet</div>
     </div>
 
-    <!-- LATEST MOCK -->
     <div class="card">
       <h2>Latest Mock</h2>
       <div id="latest-mock">No mocks added yet.</div>
     </div>
 
-    <!-- CLAT WIDGET -->
     <div class="card">
       <h2>CLAT This Week</h2>
       <div id="clat-week-hours">0 Hours</div>
     </div>
 
-    <!-- QUEST -->
     <div class="card">
       <h2>Today's Quest</h2>
       <div id="quest-list">No quest generated.</div>
     </div>
 
-    <!-- DANGER ZONE -->
     <div class="card">
       <h2>Danger Zone</h2>
       <div id="danger-zone-list"></div>
     </div>
   </section>  
 
-  <!-- CHAPTERS -->  
   <section id="chapters-page" class="page">
     <div class="page-header">
       <h2>Chapters <span id="chapter-counts"></span></h2>
@@ -195,7 +176,18 @@
     <div id="chapter-grid"></div>
   </section>  
 
-  <!-- JOURNAL -->  
+  <section id="revision-directory-page" class="page">
+    <h2>Master Revision Log</h2>
+    
+    <div class="card" style="margin-bottom:15px;">
+      <h3 style="margin:0 0 4px 0; font-size:1.05rem; color:var(--accent);">Memory Decay Analysis</h3>
+      <div id="directory-recency-stats" style="font-size:0.9rem; opacity:0.85; line-height:1.4;">Calculating profile metrics...</div>
+    </div>
+
+    <div class="scrollable-directory-container" id="master-directory-scroll-list">
+      </div>
+  </section>
+
   <section id="journal-page" class="page">
     <h2>Daily Journal</h2>
     <input id="journal-search" type="text" placeholder="Search by date..." oninput="renderJournal()">
@@ -203,14 +195,13 @@
     <div id="journal-list"></div>
   </section>  
 
-  <!-- MOCKS -->  
   <section id="mock-page" class="page">
     <h2>Mock Tests</h2>
     <button id="add-mock-btn">Add Mock</button>
     
     <div class="card">
       <h3>Mock Analytics</h3>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 5px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 12px;">
         <p style="margin:0;">Average Score: <span id="avg-mock-score" style="font-weight: bold;">0</span></p>
         <p style="margin:0;">Best Score: <span id="best-mock-score" style="font-weight: bold;">0</span></p>
         <p style="margin:0;">Physics Avg: <span id="avg-p-score" style="font-weight: bold;">0</span></p>
@@ -218,9 +209,9 @@
         <p style="margin:0;">Maths Avg: <span id="avg-m-score" style="font-weight: bold;">0</span></p>
         <p style="margin:0;">Trend: <span id="mock-trend" style="font-weight: bold;">No Trend</span></p>
       </div>
+      <button onclick="compileMistakeRepository()" style="width:100%; margin:4px 0 0 0; font-size:0.85rem; padding:8px; background:var(--card2);">📋 Open Concentrated Mistake Repository</button>
     </div>
 
-    <!-- PERFORMANCE TREND CHARTS -->
     <div class="card">
       <h3>Performance Trends</h3>
       <div style="margin-bottom: 25px;"><canvas id="chart-overall"></canvas></div>
@@ -232,7 +223,6 @@
     <div id="mock-list"></div>
   </section>  
 
-  <!-- CLAT -->  
   <section id="clat-page" class="page">
     <h2>CLAT Tracker</h2>
     <button id="add-clat-btn">Add CLAT Entry</button>
@@ -243,14 +233,12 @@
     <div id="clat-list"></div>
   </section>  
 
-  <!-- FUTURE -->  
   <section id="future-page" class="page">
     <h2>Future Me</h2>
     <button id="add-future-note-btn">Add Note</button>
     <div id="future-note-list"></div>
   </section>  
 
-  <!-- SETTINGS -->  
   <section id="settings-page" class="page">
     <h2>Settings</h2>
     <div class="card">
@@ -267,18 +255,16 @@
     </div>
   </section>  
 
-  <!-- UNIVERSAL MODAL OVERLAY -->  
   <div id="modal-overlay">
     <div id="modal-box">
       <div id="modal-content"></div>
     </div>
   </div>  
 
-  <!-- PREMIUM GLASSMORPHISM BOTTOM NAVIGATION BAR -->  
   <nav class="bottom-nav">
     <button data-page="dashboard-page">🏠</button>
     <button data-page="chapters-page">📚</button>
-    <button data-page="journal-page">📝</button>
+    <button data-page="revision-directory-page">🔄</button> <button data-page="journal-page">📝</button>
     <button data-page="mock-page">📈</button>
     <button data-page="clat-page">⚖️</button>
     <button data-page="future-page">🚀</button>
