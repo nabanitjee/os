@@ -146,7 +146,6 @@
       <div id="danger-zone-list"></div>
     </div>
   </section>  
-
   <section id="chapters-page" class="page">
     <div class="page-header">
       <h2>Chapters <span id="chapter-counts"></span></h2>
@@ -155,11 +154,15 @@
     <input id="chapter-search" type="text" placeholder="Search chapters...">
 
     <div class="filter-row">
-      <button class="filter-btn" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="weak">Weak</button>
-      <button class="filter-btn" data-filter="average">Average</button>
-      <button class="filter-btn" data-filter="strong">Strong</button>
-      <button class="filter-btn" data-filter="mastered">Mastered</button>
+      <button class="filter-btn active-filter" data-filter-type="status" data-filter="all">All</button>
+      <button class="filter-btn" data-filter-type="status" data-filter="weak">Weak</button>
+      <button class="filter-btn" data-filter-type="status" data-filter="average">Average</button>
+      <button class="filter-btn" data-filter-type="status" data-filter="strong">Strong</button>
+      <button class="filter-btn" data-filter-type="status" data-filter="mastered">Mastered</button>
+      
+      <button class="filter-btn" data-filter-type="priority" data-filter="high">🔥 High</button>
+      <button class="filter-btn" data-filter-type="priority" data-filter="medium">⚡ Medium</button>
+      <button class="filter-btn" data-filter-type="priority" data-filter="low">❄️ Low</button>
     </div>
 
     <div class="card">
@@ -172,6 +175,10 @@
       </select>
       <button id="add-custom-chapter-btn">Add Chapter</button>
     </div>
+
+    <div id="chapter-grid"></div>
+  </section>
+
 
     <div id="chapter-grid"></div>
   </section>  
