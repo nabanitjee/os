@@ -493,7 +493,7 @@ document.addEventListener("DOMContentLoaded", () => {
   safeRun(updateCountdowns, "updateCountdowns");
   safeRun(renderDropDay, "renderDropDay");
   safeRun(renderStreak, "renderStreak");
-  
+
   // Run core data analytics structures
   safeRun(renderPrepIndex, "renderPrepIndex");
   safeRun(renderStatusCounts, "renderStatusCounts");
