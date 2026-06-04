@@ -1,5 +1,5 @@
 // ==========================================================================
-// JEE NEXUS SYLLABUS INTERACTIVE GRID MODULE
+// JEE NEXUS SYLLABUS INTERACTIVE GRID MODULE - V4 COMPLETE
 // ==========================================================================
 
 let currentFilterValue = "all";
@@ -21,21 +21,31 @@ function initChapterGridSystem() {
     addBtn.onclick = handleAddCustomChapter;
   }
 
-  // Configure Advanced Combined Action Listeners
-  document.querySelectorAll("#chapters-page .filter-btn").forEach(btn => {
+  // ULTRA-SAFE EVENT SELECTION BINDING (Finds buttons anywhere inside the row)
+  document.querySelectorAll(".filter-row .filter-btn").forEach(btn => {
     btn.onclick = function(e) {
-      document.querySelectorAll("#chapters-page .filter-btn").forEach(b => b.classList.remove("active-filter"));
+      document.querySelectorAll(".filter-row .filter-btn").forEach(b => b.classList.remove("active-filter"));
       
       e.target.classList.add("active-filter");
       
       currentFilterValue = e.target.getAttribute("data-filter");
-      currentFilterType = e.target.getAttribute("data-filter-type") || "status";
       
+      // SMART FALLBACK: If HTML is cached and missing data-filter-type, auto-assign it
+      let detectedType = e.target.getAttribute("data-filter-type");
+      if (!detectedType) {
+        if (currentFilterValue === "high" || currentFilterValue === "medium" || currentFilterValue === "low") {
+          detectedType = "priority";
+        } else {
+          detectedType = "status";
+        }
+      }
+      
+      currentFilterType = detectedType;
       renderChapterGrid();
     };
   });
 
-  // Fallback bootstrap call to draw system grid items on click entry
+  // Render on startup
   renderChapterGrid();
 }
 
@@ -51,10 +61,10 @@ function renderChapterGrid() {
   let renderedCount = 0;
 
   items.forEach(([name, data]) => {
-    // Search query string baseline filter match
+    // 1. Search Query Filter Match
     if (searchQuery && !name.toLowerCase().includes(searchQuery)) return;
 
-    // Advanced dynamic segmentation filter block
+    // 2. Advanced Combined Filter Blocks
     if (currentFilterValue !== "all") {
       if (currentFilterType === "priority") {
         const itemPriority = data.priority || "medium";
@@ -66,7 +76,7 @@ function renderChapterGrid() {
 
     renderedCount++;
 
-    // Color code metrics rendering logic
+    // Dynamic Color Coding Logic
     let statusColor = "var(--weak)";
     if (data.status === "average") statusColor = "var(--average)";
     if (data.status === "strong") statusColor = "var(--strong)";
@@ -102,7 +112,7 @@ function handleAddCustomChapter() {
   const subjectSelect = document.getElementById("custom-chapter-subject");
   
   if (!nameInput || !nameInput.value.trim()) {
-    alert("Please enter a valid chapter name structure first.");
+    alert("Please enter a valid chapter name first.");
     return;
   }
 
@@ -110,11 +120,11 @@ function handleAddCustomChapter() {
   const subject = subjectSelect.value;
 
   if (window.appData.chapters[name]) {
-    alert("A chapter entry with this exact name configuration already exists.");
+    alert("A chapter entry with this exact name already exists.");
     return;
   }
 
-  // Append new dataset schema record path
+  // Create new dataset record schema
   window.appData.chapters[name] = {
     subject: subject,
     status: "weak",
@@ -141,7 +151,7 @@ function showChapterEditModal(chName) {
   const modalHTML = `
     <div style="text-align:left; color:#fff;">
       <h3 style="margin-top:0; color:var(--accent); font-weight:900; line-height:1.2;">${chName}</h3>
-      <p style="font-size:0.8rem; opacity:0.5; margin-bottom:15px;">Submodule tracking panel config</p>
+      <p style="font-size:0.8rem; opacity:0.5; margin-bottom:15px;">Submodule tracking panel configuration</p>
       
       <label style="font-size:0.85rem; font-weight:bold; color:#94a3b8;">PREPARATION STATUS</label>
       <select id="edit-ch-status" style="margin-bottom:12px;">
@@ -198,7 +208,7 @@ function saveChapterEdits(chName) {
   const r2 = document.getElementById("edit-ch-r2").checked;
   const r3 = document.getElementById("edit-ch-r3").checked;
 
-  // Timestamps tracking check updates
+  // Track revision timestamps for history directory metrics
   if (r1 !== ch.revision1 || r2 !== ch.revision2 || r3 !== ch.revision3 || newStatus !== ch.status) {
     ch.lastRevised = new Date().toISOString().split("T")[0];
   }
@@ -220,7 +230,7 @@ function saveChapterEdits(chName) {
   renderChapterGrid();
 }
 
-// Bind methods securely onto the parent browser layer window interface
+// Global Window Bindings
 window.initChapterGridSystem = initChapterGridSystem;
 window.renderChapterGrid = renderChapterGrid;
 window.showChapterEditModal = showChapterEditModal;
