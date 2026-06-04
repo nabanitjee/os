@@ -5,6 +5,18 @@
 let currentFilterType = "status";
 let currentFilterValue = "all";
 
+// Helper function to get a clean local YYYY-MM-DD date string
+function getCleanStringDate(offsetDays = 0) {
+  const d = new Date();
+  if (offsetDays !== 0) {
+    d.setDate(d.getDate() + offsetDays);
+  }
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // 1. Calculate and update the dynamic Advanced-only Tracker Card
 function updateAdvancedTrackerMetric() {
   const targetText = document.getElementById("advanced-tracker-text");
@@ -30,6 +42,16 @@ function renderChapterGrid() {
   if (!grid) return;
 
   const searchQuery = document.getElementById("chapter-search")?.value.toLowerCase().trim() || "";
+  
+  // Directly pull fresh data from LocalStorage to bypass app.js variable leaks
+  const rawSavedData = localStorage.getItem("jee_nexus_master_db");
+  if (rawSavedData) {
+    const parsed = JSON.parse(rawSavedData);
+    if (parsed && parsed.chapters) {
+      window.appData.chapters = parsed.chapters;
+    }
+  }
+
   const chaptersMaster = (window.appData && window.appData.chapters) ? window.appData.chapters : {};
   const items = Object.entries(chaptersMaster);
 
@@ -39,10 +61,8 @@ function renderChapterGrid() {
   items.forEach(([name, data]) => {
     if (!data) return;
 
-    // Handle standard Text Search Matches
     if (searchQuery && !name.toLowerCase().includes(searchQuery)) return;
 
-    // Handle Active Menu Filters cleanly
     if (currentFilterType === "exam" && currentFilterValue === "advanced-only") {
       if (!data.isAdvancedOnly) return;
     } else if (currentFilterValue !== "all") {
@@ -57,7 +77,6 @@ function renderChapterGrid() {
 
     renderedCount++;
 
-    // Strict Status Color Matching logic
     let statusColor = "var(--weak)";
     if (data.status === "average") statusColor = "var(--average)";
     if (data.status === "strong") statusColor = "var(--strong)";
@@ -82,7 +101,6 @@ function renderChapterGrid() {
   grid.innerHTML = html || `<div style="grid-column: span 2; text-align:center; opacity:0.4; padding:20px; font-size:0.9rem;">No matching modules found.</div>`;
   if (countLabel) countLabel.textContent = `(${renderedCount})`;
 
-  // Keep live tracker card completely synced up
   updateAdvancedTrackerMetric();
 }
 
@@ -99,7 +117,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Handle addition form submissions
   const addBtn = document.getElementById("add-custom-chapter-btn");
   if (addBtn) {
     addBtn.onclick = () => {
@@ -126,11 +143,13 @@ document.addEventListener("DOMContentLoaded", () => {
         revision2: false,
         revision3: false,
         priority: "medium",
-        lastRevised: null,
+        lastRevised: getCleanStringDate(),
         isAdvancedOnly: advCheckbox ? advCheckbox.checked : false
       };
 
-      window.saveData();
+      localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+      if (typeof window.saveData === "function") window.saveData();
+      
       nameInput.value = "";
       if (advCheckbox) advCheckbox.checked = false;
 
@@ -140,12 +159,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // Initial render sequence loop launch point
   renderChapterGrid();
 });
 
 // ==========================================================================
-// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH CONFIRMATION & REVISION CHECKBOXES)
+// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH STRING DATE PERSISTENCE)
 // ==========================================================================
 
 function showChapterEditModal(chapterName) {
@@ -168,17 +186,15 @@ function showChapterEditModal(chapterName) {
   const currentPYQs = chapterData.pyq !== undefined ? chapterData.pyq : 0;
   const isAdv = chapterData.isAdvancedOnly === true;
 
-  // Read stored revision tracking state loops safely
   const rev1Checked = chapterData.revision1 === true;
   const rev2Checked = chapterData.revision2 === true;
   const rev3Checked = chapterData.revision3 === true;
 
-  // Render original parameter view
   function renderMainEditView() {
     modalContent.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
         <div>
-          <h3 style="margin:0; font-size:1 rem; color:#fff;">Chapter</h3>
+          <h3 style="margin:0; font-size:1.2rem; color:#fff;">Configure Chapter</h3>
           <p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin:4px 0 0 0;">${chapterName}</p>
         </div>
         <button id="modal-delete-trigger-btn" style="background:#2d1a22; color:var(--weak); padding:8px 12px; margin:0; font-size:0.9rem; border:1px solid rgba(255,91,91,0.2); border-radius:10px;" title="Delete Custom Chapter">🗑️</button>
@@ -243,29 +259,27 @@ function showChapterEditModal(chapterName) {
       const nextPYQs = parseInt(document.getElementById("edit-chapter-pyq").value, 10) || 0;
       const nextAdvFlag = document.getElementById("edit-chapter-adv-only").checked;
 
-      // Extract new revision milestones status parameters
       const nextRev1 = document.getElementById("edit-chapter-rev1").checked;
       const nextRev2 = document.getElementById("edit-chapter-rev2").checked;
       const nextRev3 = document.getElementById("edit-chapter-rev3").checked;
 
-      // Map values directly to master database objects
       window.appData.chapters[chapterName].status = nextStatus;
       window.appData.chapters[chapterName].priority = nextPriority;
       window.appData.chapters[chapterName].pyq = nextPYQs;
       window.appData.chapters[chapterName].isAdvancedOnly = nextAdvFlag;
-      
       window.appData.chapters[chapterName].revision1 = nextRev1;
       window.appData.chapters[chapterName].revision2 = nextRev2;
       window.appData.chapters[chapterName].revision3 = nextRev3;
       
-      // Lock timestamp inside storage to reset memory decay calculations
-      window.appData.chapters[chapterName].lastRevised = Date.now(); 
-
-      if (typeof window.saveData === "function") {
-        window.saveData();
+      // Save as YYYY-MM-DD string, setting it far out if mastered to avoid decay bugs
+      if (nextStatus === "mastered" || nextStatus === "strong") {
+        window.appData.chapters[chapterName].lastRevised = getCleanStringDate(365); 
       } else {
-        localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+        window.appData.chapters[chapterName].lastRevised = getCleanStringDate(); 
       }
+
+      localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+      if (typeof window.saveData === "function") window.saveData();
       
       modalOverlay.style.display = "none";
 
@@ -275,10 +289,10 @@ function showChapterEditModal(chapterName) {
       if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
       if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
       if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
+      if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision();
     };
   }
 
-  // Swap content space over into custom inline confirmation interface deck
   function renderInbuiltConfirmDeleteView() {
     modalContent.innerHTML = `
       <div style="text-align:center; padding:10px 5px;">
@@ -302,8 +316,8 @@ function showChapterEditModal(chapterName) {
     document.getElementById("inbuilt-confirm-delete-btn").onclick = () => {
       delete window.appData.chapters[chapterName];
       
+      localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
       if (typeof window.saveData === "function") window.saveData();
-      else localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
       
       modalOverlay.style.display = "none";
       
@@ -313,6 +327,7 @@ function showChapterEditModal(chapterName) {
       if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
       if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
       if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
+      if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision();
     };
   }
 
@@ -320,7 +335,6 @@ function showChapterEditModal(chapterName) {
   renderMainEditView();
 }
 
-// Bind methods onto window target layers for structural protection
 window.renderChapterGrid = renderChapterGrid;
 window.updateAdvancedTrackerMetric = updateAdvancedTrackerMetric;
 window.showChapterEditModal = showChapterEditModal;
