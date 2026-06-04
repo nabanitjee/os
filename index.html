@@ -6,7 +6,7 @@
   <title>JEE Nexus</title>  
   <link rel="stylesheet" href="style.css">  
 
-  <link rel="apple-touch-icon" href="logo.png">
+  <link class="apple-touch-icon" href="logo.png">
   <link rel="icon" type="image/png" href="logo.png">
   <meta name="apple-mobile-web-app-title" content="JEE Nexus">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -49,11 +49,31 @@
 
     <div id="red-flag-alert-zone"></div>
 
-    <!-- 📊 CENTRAL INTERACTIVE PYQ COUNTER BLOCK -->
+    <!-- 📊 REDESIGNED CLICKABLE PYQ METRICS CARD ELEMENT -->
     <div class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 12px;">
-      <div class="stat-card clickable-nexus-card" id="nexus-pyq-card-button" style="cursor: pointer; transition: transform 0.2s ease;">
-        <h2 id="dashboard-pyq-counter-value">0</h2>
-        <p>Pyq</p>
+      <div class="stat-card clickable-nexus-card" id="nexus-pyq-card-button" style="cursor: pointer; transition: transform 0.2s ease, box-shadow 0.3s ease; display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; min-height: 85px; background: linear-gradient(135deg, #0f172a, #1e1b4b); border: 1px solid rgba(168, 85, 247, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);">
+        
+        <!-- Left Side: Title and Active Tier Status -->
+        <div style="text-align: left; display: flex; flex-direction: column; justify-content: center;">
+          <span style="font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; color: #94a3b8; text-transform: uppercase;">PYQ Progress</span>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+            <span id="dashboard-pyq-tier-emoji" style="font-size: 1.6rem; line-height: 1;">🥉</span>
+            <span id="dashboard-pyq-tier-title" style="font-size: 1.2rem; font-weight: 900; color: #fff; letter-spacing: 0.5px;">Rookie</span>
+          </div>
+        </div>
+
+        <!-- Right Side: Circular Neon Progress Ring and Counter -->
+        <div style="position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+          <svg style="transform: rotate(-90deg); width: 64px; height: 64px;">
+            <circle cx="32" cy="32" r="26" stroke="rgba(255,255,255,0.05)" stroke-width="5" fill="transparent" />
+            <circle id="dashboard-pyq-progress-ring" cx="32" cy="32" r="26" stroke="var(--accent, #a855f7)" stroke-width="5" fill="transparent" stroke-dasharray="163.36" stroke-dashoffset="163.36" stroke-linecap="round" style="transition: stroke-dashoffset 0.4s ease, stroke 0.3s ease;" />
+          </svg>
+          <div style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span id="dashboard-pyq-counter-value" style="font-size: 1.15rem; font-weight: 900; color: #fff; line-height: 1;">0</span>
+            <span style="font-size: 0.55rem; opacity: 0.5; font-weight: bold; text-transform: uppercase; margin-top: 1px; color: #fff;">Solved</span>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -144,7 +164,6 @@
       <div id="clat-week-hours">0 Hours</div>
     </div>
 
-    <!-- 🎯 TODAY'S QUEST WIDGET CONTAINER -->
     <div class="card" id="widget-quest-container">
       <h2>Today's Quest</h2>
       <div id="quest-list">No quest generated.</div>
@@ -300,7 +319,6 @@
           <input type="checkbox" id="toggle-widget-clat" onclick="window.toggleWidgetVisibility('clat', this.checked)">
           <span>Show CLAT Weekly Hours Card</span>
         </div>
-        <!-- 🛠️ FIXED: ADDED CONTROLLER SWITCH FOR QUEST WIDGET -->
         <div class="checkbox-row" style="margin-top:10px;">
           <input type="checkbox" id="toggle-widget-quest" onclick="window.toggleWidgetVisibility('quest', this.checked)">
           <span>Show Today's Quest Tracker</span>
