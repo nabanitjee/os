@@ -47,9 +47,9 @@
       </div>
     </header>
 
-      <div id="red-flag-alert-zone"></div>
+    <div id="red-flag-alert-zone"></div>
 
-    <!-- 🔥 NEW INTERACTIVE CENTRAL PYQ CARD TRACKER -->
+    <!-- 📊 CENTRAL INTERACTIVE PYQ COUNTER BLOCK -->
     <div class="stats-grid" style="grid-template-columns: 1fr; margin-bottom: 12px;">
       <div class="stat-card clickable-nexus-card" id="nexus-pyq-card-button" style="cursor: pointer; transition: transform 0.2s ease;">
         <h2 id="dashboard-pyq-counter-value">0</h2>
@@ -67,7 +67,6 @@
         <p>Streak</p>
       </div>
     </div>
-
 
     <div class="stats-grid">
       <div class="stat-card weak">
@@ -143,6 +142,12 @@
     <div class="card" id="widget-clat-container">
       <h2>CLAT This Week</h2>
       <div id="clat-week-hours">0 Hours</div>
+    </div>
+
+    <!-- 🎯 TODAY'S QUEST WIDGET CONTAINER -->
+    <div class="card" id="widget-quest-container">
+      <h2>Today's Quest</h2>
+      <div id="quest-list">No quest generated.</div>
     </div>
 
     <div class="card">
@@ -294,6 +299,11 @@
         <div class="checkbox-row" style="margin-top:10px;">
           <input type="checkbox" id="toggle-widget-clat" onclick="window.toggleWidgetVisibility('clat', this.checked)">
           <span>Show CLAT Weekly Hours Card</span>
+        </div>
+        <!-- 🛠️ FIXED: ADDED CONTROLLER SWITCH FOR QUEST WIDGET -->
+        <div class="checkbox-row" style="margin-top:10px;">
+          <input type="checkbox" id="toggle-widget-quest" onclick="window.toggleWidgetVisibility('quest', this.checked)">
+          <span>Show Today's Quest Tracker</span>
         </div>
       </div>
     </div>
