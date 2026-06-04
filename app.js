@@ -1,5 +1,5 @@
 // ==========================================================================
-// JEE NEXUS CORE ENGINE V4 (ANALYTICS, CRASH-PROOF & BALANCED SORT)
+// JEE NEXUS CORE ENGINE V4 (ANALYTICS, CRASH-PROOF & TOTAL CONTROL CENTER)
 // ==========================================================================
 
 const STORAGE_KEY = "jee_nexus_master_db";
@@ -24,7 +24,9 @@ let appData = JSON.parse(
     done1: false, done2: false, done3: false
   },
   streak: 0,
-  lastActivity: null
+  lastActivity: null,
+  activeThemeSkin: "theme-blue",
+  widgetVisibilityStates: { future: true, clat: true, quest: true }
 };
 
 function saveData() {
@@ -53,9 +55,12 @@ function openPage(pageId) {
 
   document.querySelector(`[data-page="${pageId}"]`)?.classList.add("active-nav");
 
-  // Re-trigger localized updates when entering custom navigation screens
+  // Re-trigger updates safely when entering screens
   if (pageId === "revision-directory-page") {
     safeRun(renderFullMasterDirectory, "renderFullMasterDirectory");
+  }
+  if (pageId === "settings-page") {
+    safeRun(calculateSettingsSyllabusDistribution, "calculateSettingsSyllabusDistribution");
   }
 }
 
@@ -92,7 +97,7 @@ function updateCountdowns() {
 }
 
 // ==========================================================================
-// PROGRESS LOGIC GRIDS
+// PROGRESS LOGIC GRIDS & COUNTS
 // ==========================================================================
 
 function renderDropDay() {
@@ -103,10 +108,6 @@ function renderDropDay() {
   const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
   el.textContent = diff + 1;
 }
-
-// ==========================================================================
-// RENDER STATS COUNTS
-// ==========================================================================
 
 function updateActivity() {
   const today = new Date().toISOString().split("T")[0];
@@ -252,7 +253,7 @@ function compileMistakeRepository() {
 }
 
 // ==========================================================================
-// STRATEGIC REVISION DIRECTORY ENGINE (BALANCED SORT CHRONOLOGY)
+// STRATEGIC REVISION DIRECTORY ENGINE (BALANCED DATE DECAY SORT)
 // ==========================================================================
 
 function getTimelineLabelAndColor(lastRevisedString) {
@@ -280,17 +281,14 @@ function renderBacklogRevision() {
   const sortedBacklog = items
     .map(([name, data]) => ({ name, ...data }))
     .sort((a, b) => {
-      // 1. Never revised chapters bubble to top
       if (!a.lastRevised && b.lastRevised) return -1;
       if (a.lastRevised && !b.lastRevised) return 1;
       
-      // 2. If both unrevised, sort by weight importance priority
       if (!a.lastRevised && !b.lastRevised) {
         const weight = { high: 3, medium: 2, low: 1 };
         return weight[b.priority || "medium"] - weight[a.priority || "medium"];
       }
       
-      // 3. If both revised, sort by oldest calendar age log stamp
       return new Date(a.lastRevised) - new Date(b.lastRevised);
     })
     .slice(0, 5);
@@ -327,7 +325,6 @@ function renderFullMasterDirectory() {
     return;
   }
 
-  // Balanced chronology sort chain across directory array entries
   const fullDirectorySorted = items
     .map(([name, data]) => ({ name, ...data }))
     .sort((a, b) => {
@@ -383,7 +380,7 @@ function renderFullMasterDirectory() {
 }
 
 // ==========================================================================
-// POPUP WINDOW OVERLAYS
+// POPUP WINDOW SYSTEM OVERLAYS
 // ==========================================================================
 
 function showModal(htmlContent) {
@@ -400,7 +397,79 @@ function hideModal() {
 }
 
 // ==========================================================================
-// CRASH-PROOF EXHAUSTIVE INITIALIZATION ENGINE BLOCK
+// PREMIUM CONTROL CENTER UTILITIES & SKIN THEME ENGINE
+// ==========================================================================
+
+function switchNexusTheme(themeClass) {
+  document.body.classList.remove('theme-blue', 'theme-green', 'theme-violet', 'theme-crimson');
+  
+  if (themeClass !== 'theme-blue') {
+    document.body.classList.add(themeClass);
+  }
+  
+  appData.activeThemeSkin = themeClass;
+  saveData();
+  
+  document.querySelectorAll('.theme-orb').forEach(orb => {
+    orb.classList.remove('active-orb');
+  });
+  
+  if (themeClass === 'theme-blue') document.querySelector('.orb-blue')?.classList.add('active-orb');
+  if (themeClass === 'theme-green') document.querySelector('.orb-green')?.classList.add('active-orb');
+  if (themeClass === 'theme-violet') document.querySelector('.orb-violet')?.classList.add('active-orb');
+  if (themeClass === 'theme-crimson') document.querySelector('.orb-crimson')?.classList.add('active-orb');
+}
+
+function toggleWidgetVisibility(widgetKey, isVisible) {
+  if (!appData.widgetVisibilityStates) {
+    appData.widgetVisibilityStates = { future: true, clat: true, quest: true };
+  }
+  
+  appData.widgetVisibilityStates[widgetKey] = isVisible;
+  saveData();
+  
+  let targetNode = null;
+  if (widgetKey === 'future') targetNode = document.getElementById('motivation-card')?.closest('.card');
+  if (widgetKey === 'clat') targetNode = document.getElementById('clat-week-hours')?.closest('.card');
+  if (widgetKey === 'quest') targetNode = document.getElementById('quest-list')?.closest('.card');
+  
+  if (targetNode) {
+    if (isVisible) targetNode.classList.remove('widget-hidden');
+    else targetNode.classList.add('widget-hidden');
+  }
+}
+
+function calculateSettingsSyllabusDistribution() {
+  const container = document.getElementById('settings-distribution-analyzer');
+  if (!container) return;
+  
+  const chapters = Object.values(appData.chapters || {});
+  if (chapters.length === 0) {
+    container.innerHTML = `<p style="opacity:0.5; text-align:center; margin:0;">Populate custom chapters inside your syllabus grids to review distribution metrics.</p>`;
+    return;
+  }
+  
+  let subjects = { Physics: { high: 0, med: 0, low: 0 }, Chemistry: { high: 0, med: 0, low: 0 }, Mathematics: { high: 0, med: 0, low: 0 } };
+  
+  chapters.forEach(ch => {
+    const sub = ch.subject;
+    const prio = ch.priority || 'medium';
+    if (subjects[sub]) {
+      if (prio === 'high') subjects[sub].high++;
+      if (prio === 'medium') subjects[sub].med++;
+      if (prio === 'low') subjects[sub].low++;
+    }
+  });
+  
+  container.innerHTML = `
+    <div style="margin-bottom:8px;">⚛️ <strong>Physics:</strong> <span style="color:var(--weak);">${subjects.Physics.high} High</span> • <span style="color:var(--average);">${subjects.Physics.med} Med</span> • <span style="color:var(--mastered);">${subjects.Physics.low} Low</span></div>
+    <div style="margin-bottom:8px;">🧪 <strong>Chemistry:</strong> <span style="color:var(--weak);">${subjects.Chemistry.high} High</span> • <span style="color:var(--average);">${subjects.Chemistry.med} Med</span> • <span style="color:var(--mastered);">${subjects.Chemistry.low} Low</span></div>
+    <div>🧮 <strong>Mathematics:</strong> <span style="color:var(--weak);">${subjects.Mathematics.high} High</span> • <span style="color:var(--average);">${subjects.Mathematics.med} Med</span> • <span style="color:var(--mastered);">${subjects.Mathematics.low} Low</span></div>
+  `;
+}
+
+// ==========================================================================
+// CRASH-PROOF SYSTEM INITIALIZATION BOOT ENGINE
 // ==========================================================================
 
 function safeRun(func, name) {
@@ -411,7 +480,7 @@ function safeRun(func, name) {
       window[name]();
     }
   } catch (error) {
-    console.warn(`[Safe-Shield] Component delay on: ${name}. Context:`, error.message);
+    console.warn(`[Safe-Shield Mode Override] Dynamic skip triggered on: ${name}. Context:`, error.message);
   }
 }
 
@@ -419,41 +488,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const titleEl = document.getElementById("nexus-app-title");
   if (titleEl) titleEl.textContent = APP_NAME;
 
+  // Run timing blocks
   safeRun(updateActivity, "updateActivity");
   safeRun(updateCountdowns, "updateCountdowns");
   safeRun(renderDropDay, "renderDropDay");
   safeRun(renderStreak, "renderStreak");
   
+  // Run core data analytics structures
   safeRun(renderPrepIndex, "renderPrepIndex");
   safeRun(renderStatusCounts, "renderStatusCounts");
   safeRun(renderMissionBoard, "renderMissionBoard");
   safeRun(renderBacklogRevision, "renderBacklogRevision");
   safeRun(evaluatePerformanceRedFlags, "evaluatePerformanceRedFlags");
 
-  const savedPage = sessionStorage.getItem("active_page_v3") || "dashboard-page";
-  openPage(savedPage);
-});
+  // Load active theme preference setting configurations
+  if (appData.activeThemeSkin) {
+    switchNexusTheme(appData.activeThemeSkin);
+  }
 
-setTimeout(() => {
-  safeRun(window.renderSubjectProgress, "renderSubjectProgress");
-  safeRun(window.renderLowestPYQList, "renderLowestPYQList");
-  safeRun(window.renderMotivationCard, "renderMotivationCard");
-  safeRun(window.renderChapterGrid, "renderChapterGrid");
-  safeRun(window.renderJournal, "renderJournal");
-  safeRun(window.renderMocks, "renderMocks");
-  safeRun(window.renderClat, "renderClat");
-  safeRun(window.renderQuestList, "renderQuestList");
-}, 250);
-
-// Global Scope Window Exports
-window.appData = appData;
-window.saveData = saveData;
-window.updateActivity = updateActivity;
-window.renderStatusCounts = renderStatusCounts;
-window.renderPrepIndex = renderPrepIndex;
-window.renderBacklogRevision = renderBacklogRevision;
-window.renderFullMasterDirectory = renderFullMasterDirectory;
-window.compileMistakeRepository = compileMistakeRepository;
-window.showModal = showModal;
-window.hideModal = hideModal;
-window.safeRun = safeRun;
+  // Restore and display visibility checkboxes
+  const states = appData.widgetVisibilityStates || { future: true, clat: true, quest: true };
+  const chkFuture = document.getElementById('toggle-widget-future');
+  const chkClat = document.getElementById('toggle-widge
