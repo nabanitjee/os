@@ -531,42 +531,37 @@ canvas {
   transform: scale(1.08);
 }
 
+/* 
 /* ==========================================================================
    GRADIENT SKIN ARCHITECTURE & THEME OVERRIDES
    ========================================================================== */
 
-/* 1. Update the preview orbs to show the gorgeous blended mixtures */
+/* 1. Update the preview orbs to display beautiful blended mixtures */
 .orb-blue { background: linear-gradient(135deg, #00f2fe, #4facfe); }
-.orb-green { background: linear-gradient(135deg, #39d98a, #006b38); }
-.orb-violet { background: linear-gradient(135deg, #bd00ff, #bd00ff); } /* Keeping your custom blend signature */
-.orb-crimson { background: linear-gradient(135deg, #ff5b5b, #e11d48); }
+.orb-green { background: linear-gradient(135deg, #39d98a, #059669); }
+.orb-violet { background: linear-gradient(135deg, #bd00ff, #7c3aed); }
+.orb-crimson { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
 
-/* 2. Map the active dynamic variable paths to premium linear mix schemes */
-body.theme-blue {
-  --accent: #4f8cff;
-}
+/* 2. Map Core Variable Fallbacks for general UI accents */
+body.theme-blue { --accent: #4f8cff; }
+body.theme-green { --accent: #39d98a; }
+body.theme-violet { --accent: #bd00ff; }
+body.theme-crimson { --accent: #ff5b5b; }
 
-body.theme-green {
-  --accent: #39d98a;
-  /* You can also inject specific dual-blends straight onto background gradients here if needed */
-}
+/* 3. Global Functional Element Adapters (Buttons) */
+body.theme-blue button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #00f2fe, #4facfe); }
+body.theme-green button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #39d98a, #059669); }
+body.theme-violet button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #bd00ff, #7c3aed); }
+body.theme-crimson button:not(#import-btn):not(.filter-btn):not(#add-custom-chapter-btn) { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
 
-body.theme-violet {
-  --accent: #bd00ff;
-}
+/* 4. Global Action Buttons (Add Chapter / Modal Confirmations) */
+body.theme-blue #add-custom-chapter-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); }
+body.theme-green #add-custom-chapter-btn { background: linear-gradient(135deg, #39d98a, #059669); }
+body.theme-violet #add-custom-chapter-btn { background: linear-gradient(135deg, #bd00ff, #7c3aed); }
+body.theme-crimson #add-custom-chapter-btn { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
 
-body.theme-crimson {
-  --accent: #ff5b5b;
-}
-
-/* 3. Make all main action buttons automatically adapt using a rich gradient mix */
-body.theme-blue button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #00f2fe, #4facfe); }
-body.theme-green button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #39d98a, #059669); }
-body.theme-violet button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #bd00ff, #6b8cff); }
-body.theme-crimson button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
-
-/* Make active navigation tabs match the blended profile */
-body.theme-blue .bottom-nav button.active-nav { background: linear-gradient(135deg, #00f2fe, #4facfe); }
-body.theme-green .bottom-nav button.active-nav { background: linear-gradient(135deg, #39d98a, #059669); }
-body.theme-violet .bottom-nav button.active-nav { background: linear-gradient(135deg, #bd00ff, #6b8cff); }
-body.theme-crimson .bottom-nav button.active-nav { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
+/* 5. Synchronize Navigation Tabs Glow States */
+body.theme-blue .bottom-nav button.active-nav { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #fff; }
+body.theme-green .bottom-nav button.active-nav { background: linear-gradient(135deg, #39d98a, #059669); color: #fff; }
+body.theme-violet .bottom-nav button.active-nav { background: linear-gradient(135deg, #bd00ff, #7c3aed); color: #fff; }
+body.theme-crimson .bottom-nav button.active-nav { background: linear-gradient(135deg, #ff5b5b, #ef4444); color: #fff; }
