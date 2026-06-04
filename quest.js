@@ -1,5 +1,5 @@
 // ==========================================================================
-// QUEST & MISSION TRACKER MODULE V4 (WITH PERSISTENT GLOBAL SCOPE HOOKS)
+// QUEST & MISSION TRACKER MODULE V4 (SELF-CONTAINED POPUP MATRIX)
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -12,23 +12,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof window.saveData === "function") window.saveData();
   }
 
-  // Trigger automated chron validation loop before executing layout updates
-  if (typeof window.validateAndResetDailyQuests === "function") {
-    window.validateAndResetDailyQuests();
-  }
-  if (typeof window.renderQuest === "function") {
-    window.renderQuest();
-  }
+  window.validateAndResetDailyQuests();
+  window.renderQuest();
 });
 
 window.validateAndResetDailyQuests = function() {
   if (!window.appData || !window.appData.dailyQuest) return;
 
   const now = new Date();
-  
-  // SHIFT CUSTOM CUTOFF BOUNDARY: Subtract 3 hours from current time.
-  now.setHours(now.getHours() - 3);
-
+  now.setHours(now.getHours() - 3); // 3:00 AM Time-Shift
   const todayStr = now.toISOString().split("T")[0];
 
   if (window.appData.lastActivityDate && window.appData.lastActivityDate !== todayStr) {
@@ -64,14 +56,13 @@ window.showQuestEditForm = function() {
       </div>
       
       <div class="action-row" style="margin-top:20px; display:flex; gap:10px;">
-        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; flex:1; padding:12px;">Cancel</button>
-        <button onclick="window.processQuestSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px;">Deploy Slate</button>
+        <button onclick="window.closeQuestSystemModal()" style="background:#475569; margin:0; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Cancel</button>
+        <button onclick="window.processQuestSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Deploy Slate</button>
       </div>
     </div>
   `;
 
-  if (typeof window.showModal === "function") window.showModal(formHTML);
-  else if (typeof showModal === "function") showModal(formHTML);
+  window.openQuestSystemModal(formHTML);
 };
 
 window.processQuestSubmit = function() {
@@ -83,9 +74,7 @@ window.processQuestSubmit = function() {
   };
 
   if (typeof window.saveData === "function") window.saveData();
-  if (typeof window.hideModal === "function") window.hideModal();
-  else if (typeof hideModal === "function") hideModal();
-
+  window.closeQuestSystemModal();
   window.renderQuest();
 };
 
@@ -122,7 +111,7 @@ window.renderQuest = function() {
         <span style="font-size:1.1rem;">${quest.done3 ? "✅" : "⬜"}</span>
         <span style="font-size:0.95rem; text-decoration: ${quest.done3 ? 'line-through' : 'none'}; opacity: ${quest.done3 ? 0.5 : 1}; text-align:left;">${quest.task3 || "No Active Target"}</span>
       </div>
-      <button onclick="window.showQuestEditForm()" style="width:100%; margin-top:4px; background:var(--accent); font-weight:bold; padding:12px; border-radius:8px;">
+      <button onclick="window.showQuestEditForm()" style="width:100%; margin-top:4px; background:var(--accent); font-weight:bold; padding:12px; border-radius:8px; border:none; color:#fff;">
         ⚙️ Edit Quest List
       </button>
     </div>
@@ -130,12 +119,12 @@ window.renderQuest = function() {
 };
 
 // ==========================================================================
-// UPGRADED MISSION BOARD MULTI-TRACKER MODULE LAYER
+// UPGRADED MISSION BOARD MULTI-TRACKER MODULE LAYER (SELF-CONTAINED POPUPS)
 // ==========================================================================
 
 window.showMissionForm = function() {
   const formHTML = `
-    <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
+    <div style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
       <h3 style="margin-top:0; color:var(--accent); font-weight:900;">🎯 INITIALIZE CORE MISSION</h3>
       <p style="font-size:0.8rem; opacity:0.6; margin-bottom:15px;">Set a hyper-focused target milestone (e.g., "Solve 50 PYQs of Rotational Motion").</p>
       <hr style="border:0; border-top:1px solid #334; margin-bottom:15px;">
@@ -146,14 +135,13 @@ window.showMissionForm = function() {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; flex:1; padding:12px; border-radius:8px;">Cancel</button>
-        <button onclick="window.processMissionSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px; border-radius:8px;">Deploy Mission</button>
+        <button onclick="window.closeQuestSystemModal()" style="background:#475569; margin:0; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Cancel</button>
+        <button onclick="window.processMissionSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Deploy Mission</button>
       </div>
     </div>
   `;
 
-  if (typeof window.showModal === "function") window.showModal(formHTML);
-  else if (typeof showModal === "function") showModal(formHTML);
+  window.openQuestSystemModal(formHTML);
 };
 
 window.processMissionSubmit = function() {
@@ -172,15 +160,13 @@ window.processMissionSubmit = function() {
   });
 
   if (typeof window.saveData === "function") window.saveData();
-  if (typeof window.hideModal === "function") window.hideModal();
-  else if (typeof hideModal === "function") hideModal();
-
+  window.closeQuestSystemModal();
   window.renderMissionBoard();
 };
 
 window.showCompleteMissionForm = function(missionId) {
   const formHTML = `
-    <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
+    <div style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
       <h3 style="margin-top:0; color:#10b981; font-weight:900;">✨ MISSION ACCOMPLISHED</h3>
       <p style="font-size:0.85rem; opacity:0.7; margin-bottom:15px;">Log the duration it took you to crush this objective.</p>
       
@@ -190,14 +176,13 @@ window.showCompleteMissionForm = function(missionId) {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; flex:1; padding:12px; border-radius:8px;">Cancel</button>
-        <button onclick="window.processArchiveMission(${missionId})" style="background:#10b981; margin:0; font-weight:bold; flex:1; padding:12px; border-radius:8px; color:#fff;">Archive Log</button>
+        <button onclick="window.closeQuestSystemModal()" style="background:#475569; margin:0; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Cancel</button>
+        <button onclick="window.processArchiveMission(${missionId})" style="background:#10b981; margin:0; font-weight:bold; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Archive Log</button>
       </div>
     </div>
   `;
 
-  if (typeof window.showModal === "function") window.showModal(formHTML);
-  else if (typeof showModal === "function") showModal(formHTML);
+  window.openQuestSystemModal(formHTML);
 };
 
 window.processArchiveMission = function(missionId) {
@@ -222,9 +207,7 @@ window.processArchiveMission = function(missionId) {
     else if (typeof window.saveData === "function") window.saveData();
   }
 
-  if (typeof window.hideModal === "function") window.hideModal();
-  else if (typeof hideModal === "function") hideModal();
-
+  window.closeQuestSystemModal();
   window.renderMissionBoard();
   if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory();
 };
@@ -246,7 +229,7 @@ window.renderMissionBoard = function() {
     <div class="card" style="padding:16px; background:var(--card1); border-radius:14px; text-align: left;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h3 style="margin:0; font-size:1.1rem; color:#fff; font-weight:bold;">🎯 Mission Board (${list.length})</h3>
-        <button onclick="window.showMissionForm()" style="background:var(--accent); margin:0; padding:6px 12px; font-size:0.8rem; font-weight:bold; border-radius:6px; width:auto; cursor:pointer;">+ Add Mission</button>
+        <button onclick="window.showMissionForm()" style="background:var(--accent); margin:0; padding:6px 12px; font-size:0.8rem; font-weight:bold; border-radius:6px; width:auto; border:none; color:#fff; cursor:pointer;">+ Add Mission</button>
       </div>
   `;
 
@@ -259,8 +242,8 @@ window.renderMissionBoard = function() {
         <div style="background:var(--card2); padding:10px 12px; border-radius:10px; border-left:4px solid var(--accent); display:flex; flex-direction:column; gap:6px;">
           <p style="margin:0; font-size:0.92rem; color:#fff; font-weight:500; line-height:1.3; white-space:pre-wrap;">${m.objective}</p>
           <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
-            <button onclick="window.showCompleteMissionForm(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff; cursor:pointer;">✔ Complete</button>
-            <button onclick="window.deleteActiveMission(${m.id})" style="background:#b91c1c; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; cursor:pointer;">Remove</button>
+            <button onclick="window.showCompleteMissionForm(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff; border:none; cursor:pointer;">✔ Complete</button>
+            <button onclick="window.deleteActiveMission(${m.id})" style="background:#b91c1c; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; border:none; color:#fff; cursor:pointer;">Remove</button>
           </div>
         </div>
       `;
@@ -305,4 +288,50 @@ window.renderSettingsMissionHistory = function() {
 
   html += `</div>`;
   historyBox.innerHTML = html;
+};
+
+// ==========================================================================
+// FAILSAFE ISOLATED MODAL INJECTION SYSTEM 
+// ==========================================================================
+
+window.openQuestSystemModal = function(innerContentHTML) {
+  // Remove duplicate modals if they exist
+  window.closeQuestSystemModal();
+
+  const overlay = document.createElement("div");
+  overlay.id = "failsafe-quest-modal-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.background = "rgba(10, 16, 30, 0.85)";
+  overlay.style.backdropFilter = "blur(6px)";
+  overlay.style.display = "flex";
+  overlay.style.justifyContent = "center";
+  overlay.style.alignItems = "center";
+  overlay.style.zIndex = "99999";
+  overlay.style.padding = "20px";
+  overlay.style.boxSizing = "border-box";
+
+  const box = document.createElement("div");
+  box.style.background = "#142242";
+  box.style.width = "100%";
+  box.style.maxWidth = "420px";
+  box.style.borderRadius = "16px";
+  box.style.padding = "20px";
+  box.style.border = "1px solid rgba(255,255,255,0.08)";
+  box.style.boxShadow = "0 20px 40px rgba(0,0,0,0.4)";
+  box.style.boxSizing = "border-box";
+  box.innerHTML = innerContentHTML;
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+};
+
+window.closeQuestSystemModal = function() {
+  const existingOverlay = document.getElementById("failsafe-quest-modal-overlay");
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
 };
