@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================================================
-// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH INBUILT POPUP CONFIRMATION)
+// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH CONFIRMATION & REVISION CHECKBOXES)
 // ==========================================================================
 
 function showChapterEditModal(chapterName) {
@@ -168,6 +168,11 @@ function showChapterEditModal(chapterName) {
   const currentPYQs = chapterData.pyq !== undefined ? chapterData.pyq : 0;
   const isAdv = chapterData.isAdvancedOnly === true;
 
+  // Read stored revision tracking state loops safely
+  const rev1Checked = chapterData.revision1 === true;
+  const rev2Checked = chapterData.revision2 === true;
+  const rev3Checked = chapterData.revision3 === true;
+
   // Render original parameter view
   function renderMainEditView() {
     modalContent.innerHTML = `
@@ -179,8 +184,8 @@ function showChapterEditModal(chapterName) {
         <button id="modal-delete-trigger-btn" style="background:#2d1a22; color:var(--weak); padding:8px 12px; margin:0; font-size:0.9rem; border:1px solid rgba(255,91,91,0.2); border-radius:10px;" title="Delete Custom Chapter">🗑️</button>
       </div>
 
-      <label style="font-size:0.8rem; font-weight:bold; opacity:0.8; margin-top:15px;">PREPARATION STATUS</label>
-      <select id="edit-chapter-status" style="margin-top:5px; margin-bottom:15px;">
+      <label style="font-size:0.8rem; font-weight:bold; opacity:0.8; margin-top:12px;">PREPARATION STATUS</label>
+      <select id="edit-chapter-status" style="margin-top:5px; margin-bottom:12px;">
         <option value="weak" ${currentStatus === 'weak' ? 'selected' : ''}>❌ Weak</option>
         <option value="average" ${currentStatus === 'average' ? 'selected' : ''}>⚡ Average</option>
         <option value="strong" ${currentStatus === 'strong' ? 'selected' : ''}>🔥 Strong</option>
@@ -188,14 +193,30 @@ function showChapterEditModal(chapterName) {
       </select>
 
       <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">HIGH-YIELD WEIGHTED PRIORITY</label>
-      <select id="edit-chapter-priority" style="margin-top:5px; margin-bottom:15px;">
+      <select id="edit-chapter-priority" style="margin-top:5px; margin-bottom:12px;">
         <option value="high" ${currentPriority === 'high' ? 'selected' : ''}>🔥 High Priority</option>
         <option value="medium" ${currentPriority === 'medium' ? 'selected' : ''}>⚡ Medium Priority</option>
         <option value="low" ${currentPriority === 'low' ? 'selected' : ''}>❄️ Low Priority</option>
       </select>
 
       <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">TOTAL PYQs SOLVED</label>
-      <input type="number" id="edit-chapter-pyq" value="${currentPYQs}" min="0" style="margin-top:5px; margin-bottom:15px;">
+      <input type="number" id="edit-chapter-pyq" value="${currentPYQs}" min="0" style="margin-top:5px; margin-bottom:12px;">
+
+      <label style="font-size:0.8rem; font-weight:bold; opacity:0.8; margin-bottom:4px;">REVISION MILESTONES</label>
+      <div style="background:var(--card2); padding:10px 14px; border-radius:14px; display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+        <div class="checkbox-row" style="margin:0;">
+          <input type="checkbox" id="edit-chapter-rev1" ${rev1Checked ? 'checked' : ''}>
+          <span style="font-size:0.85rem;">🔄 Revision Stage 1 (Formula Check)</span>
+        </div>
+        <div class="checkbox-row" style="margin:0;">
+          <input type="checkbox" id="edit-chapter-rev2" ${rev2Checked ? 'checked' : ''}>
+          <span style="font-size:0.85rem;">🔄 Revision Stage 2 (Timed Drilling)</span>
+        </div>
+        <div class="checkbox-row" style="margin:0;">
+          <input type="checkbox" id="edit-chapter-rev3" ${rev3Checked ? 'checked' : ''}>
+          <span style="font-size:0.85rem;">🔄 Revision Stage 3 (PYQ Clean-up)</span>
+        </div>
+      </div>
 
       <div class="checkbox-row" style="margin-top:5px; margin-bottom:20px;">
         <input type="checkbox" id="edit-chapter-adv-only" ${isAdv ? 'checked' : ''}>
@@ -203,8 +224,8 @@ function showChapterEditModal(chapterName) {
       </div>
 
       <div class="action-row" style="display:flex; gap:10px;">
-        <button id="modal-save-btn" style="margin:0;">Save Parameters</button>
         <button id="modal-close-btn" style="background:var(--card2); box-shadow:none; margin:0;">Cancel</button>
+        <button id="modal-save-btn" style="margin:0;">Save Parameters</button>
       </div>
     `;
 
@@ -222,13 +243,30 @@ function showChapterEditModal(chapterName) {
       const nextPYQs = parseInt(document.getElementById("edit-chapter-pyq").value, 10) || 0;
       const nextAdvFlag = document.getElementById("edit-chapter-adv-only").checked;
 
+      // Extract new revision milestones status parameters
+      const nextRev1 = document.getElementById("edit-chapter-rev1").checked;
+      const nextRev2 = document.getElementById("edit-chapter-rev2").checked;
+      const nextRev3 = document.getElementById("edit-chapter-rev3").checked;
+
+      // Map values directly to master database objects
       window.appData.chapters[chapterName].status = nextStatus;
       window.appData.chapters[chapterName].priority = nextPriority;
       window.appData.chapters[chapterName].pyq = nextPYQs;
       window.appData.chapters[chapterName].isAdvancedOnly = nextAdvFlag;
-      window.appData.chapters[chapterName].lastRevised = new Date().toISOString(); 
+      
+      window.appData.chapters[chapterName].revision1 = nextRev1;
+      window.appData.chapters[chapterName].revision2 = nextRev2;
+      window.appData.chapters[chapterName].revision3 = nextRev3;
+      
+      // Lock timestamp inside storage to reset memory decay calculations
+      window.appData.chapters[chapterName].lastRevised = Date.now(); 
 
-      if (typeof window.saveData === "function") window.saveData();
+      if (typeof window.saveData === "function") {
+        window.saveData();
+      } else {
+        localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+      }
+      
       modalOverlay.style.display = "none";
 
       renderChapterGrid();
@@ -236,6 +274,7 @@ function showChapterEditModal(chapterName) {
       if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
       if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
       if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
+      if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
     };
   }
 
@@ -264,6 +303,8 @@ function showChapterEditModal(chapterName) {
       delete window.appData.chapters[chapterName];
       
       if (typeof window.saveData === "function") window.saveData();
+      else localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+      
       modalOverlay.style.display = "none";
       
       renderChapterGrid();
@@ -271,6 +312,7 @@ function showChapterEditModal(chapterName) {
       if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
       if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
       if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
+      if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
     };
   }
 
