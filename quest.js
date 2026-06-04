@@ -1,5 +1,5 @@
 // ==========================================================================
-// QUEST & MISSION SYSTEM MODULE V4 (WITH AUTOMATED CHRON MIDNIGHT RESET)
+// QUEST & MISSION SYSTEM MODULE V4 (WITH AUTOMATED 3:00 AM TIMESHIFT RESET)
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     if (typeof window.saveData === "function") window.saveData();
   }
-  
+
   // Trigger automated chron validation loop before executing layout updates
   validateAndResetDailyQuests();
   renderQuest();
@@ -19,15 +19,23 @@ document.addEventListener("DOMContentLoaded", () => {
 function validateAndResetDailyQuests() {
   if (!window.appData || !window.appData.dailyQuest) return;
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  // 1. Grab current device system time metrics
+  const now = new Date();
   
-  // If the last activity happened on a prior calendar date, reset checkmarks smoothly
+  // 2. SHIFT CUSTOM CUTOFF BOUNDARY: Subtract 3 hours from current time.
+  // This safely pushes late-night study sessions (12:00 AM - 2:59 AM) into yesterday's bucket.
+  now.setHours(now.getHours() - 3);
+
+  // 3. Generate the shifted comparison date string (YYYY-MM-DD)
+  const todayStr = now.toISOString().split("T")[0];
+
+  // 4. Compare with last recorded timestamp node to trigger reset safely
   if (window.appData.lastActivityDate && window.appData.lastActivityDate !== todayStr) {
-    // Only reset checkmarks so user has a fresh slate, keeping texts as templates
+    // Past 3:00 AM on a new calendar tracking day: clear checkmarks smoothly!
     window.appData.dailyQuest.done1 = false;
     window.appData.dailyQuest.done2 = false;
     window.appData.dailyQuest.done3 = false;
-    
+
     if (typeof window.saveData === "function") window.saveData();
   }
 }
@@ -77,21 +85,21 @@ function processQuestSubmit() {
   if (typeof window.saveData === "function") window.saveData();
   if (typeof window.hideModal === "function") window.hideModal();
   else if (typeof hideModal === "function") hideModal();
-  
+
   renderQuest();
 }
 
 function toggleQuest(taskNo) {
   const key = "done" + taskNo;
   window.appData.dailyQuest[key] = !window.appData.dailyQuest[key];
-  
+
   // Increment streak matrix safely if you complete a target milestone
   if (window.appData.dailyQuest[key] && typeof window.updateActivity === "function") {
     window.updateActivity();
   } else {
     if (typeof window.saveData === "function") window.saveData();
   }
-  
+
   renderQuest();
 }
 
