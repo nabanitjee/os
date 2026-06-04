@@ -12,6 +12,7 @@ window.appData = {
   futureNotes: [],
   streak: 0,
   lastActivityDate: "",
+  dailyQuest: { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false }, // 👈 FIXED: Base blueprint locked into schema
   activeMissionsList: [],      // 👈 Persistent active mission registry queue array
   completedMissionsLog: [],    // 👈 Permanent tracking archive list for achievements
   widgetVisibility: {
@@ -44,8 +45,9 @@ function loadData() {
         window.appData.futureNotes = parsed.futureNotes || [];
         window.appData.streak = parsed.streak !== undefined ? parsed.streak : 0;
         window.appData.lastActivityDate = parsed.lastActivityDate || "";
-        window.appData.activeMissionsList = parsed.activeMissionsList || []; // 👈 Synchronizes active backlog profiles securely
-        window.appData.completedMissionsLog = parsed.completedMissionsLog || []; // 👈 Synchronizes past timeline archives securely
+        window.appData.dailyQuest = parsed.dailyQuest || { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false }; // 👈 FIXED: Maps data stream correctly
+        window.appData.activeMissionsList = parsed.activeMissionsList || []; 
+        window.appData.completedMissionsLog = parsed.completedMissionsLog || []; 
         window.appData.currentTheme = parsed.currentTheme || "theme-blue";
         window.appData.lastActiveTab = parsed.lastActiveTab || "dashboard-page";
 
@@ -253,7 +255,8 @@ function fullyTriggerUIRefresh() {
   try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
   try { if (typeof window.renderSyllabusDistributionBalance === "function") window.renderSyllabusDistributionBalance(); } catch(e){}
   try { if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); } catch(e){} 
-  try { if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); } catch(e){} // 👈 Hot-sync persistent archives
+  try { if (typeof window.renderQuest === "function") window.renderQuest(); } catch(e){} // 👈 FIXED: Syncs quest checklist on focus
+  try { if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); } catch(e){} 
   try { renderStreak(); } catch(e){}
 }
 
@@ -276,7 +279,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStreak();
 
   if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); 
-  if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); // 👈 Initial render anchor hook mount
+  if (typeof window.renderQuest === "function") window.renderQuest(); // 👈 FIXED: Hydrates quest state on launch
+  if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); 
   applyWidgetVisibilityLayouts();
 
   switchNavigationTab(window.appData.lastActiveTab || "dashboard-page");
