@@ -1,54 +1,99 @@
-// =========================
-// BACKUP CONFIGURATIONS V4
-// =========================
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("export-btn")?.addEventListener("click", triggerDataExport);
-  document.getElementById("import-btn")?.addEventListener("click", showImportFormOverlay);
-});
+// ==========================================================================
+// JEE NEXUS CRASH-PROOF IMPORT / EXPORT UTILITY LAYER
+// ==========================================================================
 
-function triggerDataExport() {
-  const jsonString = JSON.stringify(window.appData, null, 2);
-  const blob = new Blob([jsonString], { type: "application/json" });
-  const downloadUrl = URL.createObjectURL(blob);
-  
-  const tempLink = document.createElement("a");
-  const stamp = new Date().toISOString().split("T")[0];
-  
-  tempLink.href = downloadUrl;
-  tempLink.download = `JEE_OS_BACKUP_${stamp}.json`;
-  document.body.appendChild(tempLink);
-  tempLink.click();
-  
-  document.body.removeChild(tempLink);
-  URL.revokeObjectURL(downloadUrl);
+// Safeguard function to ensure click bindings stick even on slow mobile loads
+function initBackupSystem() {
+  const expBtn = document.getElementById("export-btn");
+  const impBtn = document.getElementById("import-btn");
+
+  if (expBtn) {
+    expBtn.onclick = function() { triggerDataExport(); };
+  }
+  if (impBtn) {
+    impBtn.onclick = function() { showImportFormOverlay(); };
+  }
 }
 
+// Run immediately on script load AND on DOM completion for absolute safety
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initBackupSystem);
+} else {
+  initBackupSystem();
+}
+
+// ==========================================================================
+// EXPORT PIPELINE
+// ==========================================================================
+function triggerDataExport() {
+  try {
+    const dataToExport = window.appData || appData;
+    if (!dataToExport) {
+      alert("Error: Core database not found in memory memory layer.");
+      return;
+    }
+
+    const jsonString = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const downloadUrl = URL.createObjectURL(blob);
+    
+    const tempLink = document.createElement("a");
+    const stamp = new Date().toISOString().split("T")[0];
+    
+    tempLink.href = downloadUrl;
+    tempLink.download = `JEE_NEXUS_BACKUP_${stamp}.json`;
+    document.body.appendChild(tempLink);
+    tempLink.click();
+    
+    document.body.removeChild(tempLink);
+    URL.revokeObjectURL(downloadUrl);
+  } catch (err) {
+    alert("Export failed: " + err.message);
+  }
+}
+
+// ==========================================================================
+// IMPORT OVERLAY VIEW
+// ==========================================================================
 function showImportFormOverlay() {
   const formHTML = `
-    <div class="modal-form-container" style="font-family:sans-serif; color:#fff; padding:5px;">
-      <h3 style="margin-top:0; color:var(--accent);">Import Data Archive</h3>
-      <p style="font-size:0.85rem; opacity:0.7; margin-bottom:15px; color:var(--weak);">⚠️ Danger: This completely replaces your current history.</p>
+    <div class="modal-form-container" style="font-family:sans-serif; color:#fff; padding:5px; text-align: left;">
+      <h3 style="margin-top:0; color:var(--accent); font-weight:900;">IMPORT RESTORE CAPTURE</h3>
+      <p style="font-size:0.85rem; opacity:0.7; margin-bottom:15px; color:var(--weak);">⚠️ Warning: This overrides your current stats completely.</p>
       
-      <div style="border: 2px dashed #334; padding: 15px; border-radius: 12px; text-align: center; background:#081224;">
-        <label for="file-upload-input" style="cursor:pointer; font-weight:bold; color:var(--accent); margin:0;">📁 Select JSON Backup File</label>
+      <div style="border: 2px dashed #1b2d57; padding: 20px; border-radius: 14px; text-align: center; background:#081224; margin-bottom: 12px;">
+        <label for="file-upload-input" style="cursor:pointer; font-weight:bold; color:var(--accent); margin:0; display:block; width:100%;">📁 SELECT JSON BACKUP FILE</label>
         <input type="file" id="file-upload-input" accept=".json" style="display:none;" onchange="handleBackupFileSelect(event)">
-        <div id="file-upload-name" style="font-size:0.8rem; margin-top:5px; opacity:0.6;">No File Chosen</div>
+        <div id="file-upload-name" style="font-size:0.8rem; margin-top:6px; opacity:0.5; color:#fff;">No File Chosen</div>
       </div>
       
-      <div style="text-align:center; margin:12px 0; font-size:0.8rem; opacity:0.4;">- OR PASTE RAW OBJECT CODE -</div>
+      <div style="text-align:center; margin:10px 0; font-size:0.75rem; opacity:0.4; font-weight:bold; letter-spacing:1px;">- OR PASTE TEXT CODE STREAM -</div>
       
       <div>
-        <textarea id="raw-json-paste" placeholder="Paste export code text string..." style="font-size:0.8rem; height:70px; background:#1b2d57; border:none; border-radius:8px; padding:10px; color:#fff; width:100%; box-sizing:border-box;"></textarea>
+        <textarea id="raw-json-paste" placeholder="Paste your saved export text string right here..." style="font-size:0.85rem; height:90px; background:#1b2d57; border:none; border-radius:12px; padding:12px; color:#fff; width:100%; box-sizing:border-box; margin-top:5px; margin-bottom:15px;"></textarea>
       </div>
       
-      <div class="action-row" style="margin-top:20px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0;">Cancel</button>
-        <button onclick="processDataImportSubmit()" style="background:#b91c1c; margin:0; font-weight:bold;">Override & Restore</button>
+      <div class="action-row" style="margin-top:15px; display:flex; gap:10px;">
+        <button onclick="hideModal();" style="background:#475569; margin:0; padding:12px 16px; flex:1;">Cancel</button>
+        <button onclick="processDataImportSubmit()" style="background:#b91c1c; margin:0; padding:12px 16px; font-weight:bold; flex:1;">Override & Restore</button>
       </div>
     </div>
   `;
-  if (typeof showModal === "function") showModal(formHTML);
+  
+  // Use core modal engine or deploy emergency fallback hook if layout engine isn't ready
+  if (typeof window.showModal === "function") {
+    window.showModal(formHTML);
+  } else if (typeof showModal === "function") {
+    showModal(formHTML);
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    const contentBox = document.getElementById("modal-content");
+    if (overlay && contentBox) {
+      contentBox.innerHTML = formHTML;
+      overlay.style.display = "flex";
+    }
+  }
 }
 
 function handleBackupFileSelect(event) {
@@ -71,25 +116,53 @@ function processDataImportSubmit() {
   if (!codeArea) return;
   
   const parsedText = codeArea.value.trim();
-  if (!parsedText) { alert("Please provide a valid backup string first!"); return; }
+  if (!parsedText) { 
+    alert("Please upload a backup file or paste your code string first!"); 
+    return; 
+  }
 
   try {
-    const freshData = JSON.parse(parsedText);
+    let freshData = JSON.parse(parsedText);
     
+    // Structure schema integrity checks
     if (freshData.chapters && freshData.mocks && freshData.journal) {
-      window.appData = freshData;
-      saveData();
-      hideModal();
       
-      alert("Database Restored Successfully! Refreshing workspace...");
+      // Auto-repair system patch for older backup formats
+      if (!freshData.dailyQuest) {
+        freshData.dailyQuest = { task1: "", task2: "", task3: "", done1: false, done2: false, done3: false };
+      }
+      if (!freshData.clat) freshData.clat = [];
+      if (!freshData.futureNotes) freshData.futureNotes = [];
+      if (freshData.streak === undefined) freshData.streak = 0;
+
+      // Force apply structural updates safely to local storage arrays
+      const coreSave = window.saveData || saveData;
+      
+      window.appData = freshData;
+      localStorage.setItem("jee_os_v3", JSON.stringify(freshData));
+      
+      if (typeof coreSave === "function") coreSave();
+      
+      if (typeof window.hideModal === "function") window.hideModal();
+      else if (typeof hideModal === "function") hideModal();
+      else {
+        const overlay = document.getElementById("modal-overlay");
+        if (overlay) overlay.style.display = "none";
+      }
+      
+      alert("Database Synchronized & Restored Successfully! Rebooting Nexus Workspace...");
       window.location.reload();
     } else {
-      alert("Invalid backup format structure components missing.");
+      alert("Invalid File Format: This text block is missing vital JEE tracking arrays.");
     }
   } catch (error) {
-    alert("Failed decoding backup context string parameter error.");
+    alert("Parse Failure: The text code data you pasted is corrupted or incomplete.");
   }
 }
 
+// Bind variables explicitly onto global window layer
+window.triggerDataExport = triggerDataExport;
+window.showImportFormOverlay = showImportFormOverlay;
 window.handleBackupFileSelect = handleBackupFileSelect;
 window.processDataImportSubmit = processDataImportSubmit;
+window.initBackupSystem = initBackupSystem;
