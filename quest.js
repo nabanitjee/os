@@ -1,5 +1,5 @@
 // ==========================================================================
-// QUEST & MISSION TRACKER MODULE V4 (SELF-CONTAINED POPUP MATRIX)
+// QUEST & MISSION TRACKER MODULE V4 (WITH AUTOMATIC TIMELINE ENGINE)
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -12,15 +12,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof window.saveData === "function") window.saveData();
   }
 
-  window.validateAndResetDailyQuests();
-  window.renderQuest();
+  if (typeof window.validateAndResetDailyQuests === "function") window.validateAndResetDailyQuests();
+  if (typeof window.renderQuest === "function") window.renderQuest();
 });
 
 window.validateAndResetDailyQuests = function() {
   if (!window.appData || !window.appData.dailyQuest) return;
 
   const now = new Date();
-  now.setHours(now.getHours() - 3); // 3:00 AM Time-Shift
+  now.setHours(now.getHours() - 3); // 3:00 AM Cutoff Time-Shift
+
   const todayStr = now.toISOString().split("T")[0];
 
   if (window.appData.lastActivityDate && window.appData.lastActivityDate !== todayStr) {
@@ -119,14 +120,14 @@ window.renderQuest = function() {
 };
 
 // ==========================================================================
-// UPGRADED MISSION BOARD MULTI-TRACKER MODULE LAYER (SELF-CONTAINED POPUPS)
+// AUTOMATED MISSION BOARD TRACKER ENGINE (MATH-BASED TIMELINES)
 // ==========================================================================
 
 window.showMissionForm = function() {
   const formHTML = `
     <div style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
       <h3 style="margin-top:0; color:var(--accent); font-weight:900;">🎯 INITIALIZE CORE MISSION</h3>
-      <p style="font-size:0.8rem; opacity:0.6; margin-bottom:15px;">Set a hyper-focused target milestone (e.g., "Solve 50 PYQs of Rotational Motion").</p>
+      <p style="font-size:0.8rem; opacity:0.6; margin-bottom:15px;">Set a target goal. The stop-watch auto-starts the second you deploy.</p>
       <hr style="border:0; border-top:1px solid #334; margin-bottom:15px;">
       
       <div style="margin-bottom:15px;">
@@ -156,7 +157,7 @@ window.processMissionSubmit = function() {
   window.appData.activeMissionsList.push({
     id: Date.now(),
     objective: missionText,
-    timestampCreated: new Date().toISOString()
+    timestampCreated: new Date().toISOString() // 👈 Stop-watch start mark anchor
   });
 
   if (typeof window.saveData === "function") window.saveData();
@@ -164,41 +165,35 @@ window.processMissionSubmit = function() {
   window.renderMissionBoard();
 };
 
-window.showCompleteMissionForm = function(missionId) {
-  const formHTML = `
-    <div style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
-      <h3 style="margin-top:0; color:#10b981; font-weight:900;">✨ MISSION ACCOMPLISHED</h3>
-      <p style="font-size:0.85rem; opacity:0.7; margin-bottom:15px;">Log the duration it took you to crush this objective.</p>
-      
-      <div style="margin-bottom:15px;">
-        <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:#10b981; font-weight:bold;">Duration Taken</label>
-        <input type="text" id="m-duration-input" placeholder="e.g., 2.5 hours, 45 mins" style="width:100%; padding:12px; background:#1b2d57; border:none; color:#fff; border-radius:8px; box-sizing:border-box;">
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="window.closeQuestSystemModal()" style="background:#475569; margin:0; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Cancel</button>
-        <button onclick="window.processArchiveMission(${missionId})" style="background:#10b981; margin:0; font-weight:bold; flex:1; padding:12px; border:none; color:#fff; border-radius:8px;">Archive Log</button>
-      </div>
-    </div>
-  `;
-
-  window.openQuestSystemModal(formHTML);
-};
-
-window.processArchiveMission = function(missionId) {
-  const durationInp = document.getElementById("m-duration-input");
-  const durationLogged = durationInp ? durationInp.value.trim() || "Untimed" : "Untimed";
-
+// 🔥 AUTOMATED CHRONO-MATH CALCULATOR: Compares start time with now
+window.autoArchiveMission = function(missionId) {
   if (!window.appData.activeMissionsList) window.appData.activeMissionsList = [];
   if (!window.appData.completedMissionsLog) window.appData.completedMissionsLog = [];
 
   const targetMission = window.appData.activeMissionsList.find(m => m.id === missionId);
   if (targetMission) {
+    const startTime = new Date(targetMission.timestampCreated);
+    const endTime = new Date();
+    
+    // Calculate difference in total minutes
+    const diffMs = endTime - startTime;
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    // Format duration string cleanly based on elapsed time splits
+    let durationString = "Under a min";
+    if (totalMinutes >= 60) {
+      const hrs = Math.floor(totalMinutes / 60);
+      const mins = totalMinutes % 60;
+      durationString = `${hrs}h ${mins}m`;
+    } else if (totalMinutes > 0) {
+      durationString = `${totalMinutes} mins`;
+    }
+
     window.appData.completedMissionsLog.push({
       id: targetMission.id,
       objective: targetMission.objective,
       dateCompleted: new Date().toISOString().split("T")[0],
-      duration: durationLogged
+      duration: durationString // 👈 Automated result output parsed here
     });
 
     window.appData.activeMissionsList = window.appData.activeMissionsList.filter(m => m.id !== missionId);
@@ -207,7 +202,6 @@ window.processArchiveMission = function(missionId) {
     else if (typeof window.saveData === "function") window.saveData();
   }
 
-  window.closeQuestSystemModal();
   window.renderMissionBoard();
   if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory();
 };
@@ -242,7 +236,7 @@ window.renderMissionBoard = function() {
         <div style="background:var(--card2); padding:10px 12px; border-radius:10px; border-left:4px solid var(--accent); display:flex; flex-direction:column; gap:6px;">
           <p style="margin:0; font-size:0.92rem; color:#fff; font-weight:500; line-height:1.3; white-space:pre-wrap;">${m.objective}</p>
           <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
-            <button onclick="window.showCompleteMissionForm(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff; border:none; cursor:pointer;">✔ Complete</button>
+            <button onclick="window.autoArchiveMission(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff; border:none; cursor:pointer;">✔ Complete</button>
             <button onclick="window.deleteActiveMission(${m.id})" style="background:#b91c1c; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; border:none; color:#fff; cursor:pointer;">Remove</button>
           </div>
         </div>
@@ -295,7 +289,6 @@ window.renderSettingsMissionHistory = function() {
 // ==========================================================================
 
 window.openQuestSystemModal = function(innerContentHTML) {
-  // Remove duplicate modals if they exist
   window.closeQuestSystemModal();
 
   const overlay = document.createElement("div");
