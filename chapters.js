@@ -32,7 +32,7 @@ function renderChapterGrid() {
   const searchQuery = document.getElementById("chapter-search")?.value.toLowerCase().trim() || "";
   const chaptersMaster = (window.appData && window.appData.chapters) ? window.appData.chapters : {};
   const items = Object.entries(chaptersMaster);
-  
+
   let html = "";
   let renderedCount = 0;
 
@@ -78,7 +78,7 @@ function renderChapterGrid() {
 
   grid.innerHTML = html || `<div style="grid-column: span 2; text-align:center; opacity:0.4; padding:20px; font-size:0.9rem;">No matching modules found.</div>`;
   if (countLabel) countLabel.textContent = `(${renderedCount})`;
-  
+
   // Keep live tracker card completely synced up
   updateAdvancedTrackerMetric();
 }
@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.saveData();
       nameInput.value = "";
       if (advCheckbox) advCheckbox.checked = false;
-      
+
       renderChapterGrid();
       if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
       if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
@@ -141,6 +141,94 @@ document.addEventListener("DOMContentLoaded", () => {
   renderChapterGrid();
 });
 
+// ==========================================================================
+// CENTRAL EDIT MODAL INJECTOR ENGINE
+// ==========================================================================
+
+function showChapterEditModal(chapterName) {
+  const modalOverlay = document.getElementById("modal-overlay");
+  const modalContent = document.getElementById("modal-content");
+  
+  if (!modalOverlay || !modalContent) {
+    console.error("Critical System Error: Modal layout selectors missing in index.html");
+    return;
+  }
+
+  const chapterData = window.appData.chapters[chapterName];
+  if (!chapterData) {
+    alert("Could not locate data for: " + chapterName);
+    return;
+  }
+
+  const currentStatus = chapterData.status || "weak";
+  const currentPriority = chapterData.priority || "medium";
+  const currentPYQs = chapterData.pyq !== undefined ? chapterData.pyq : 0;
+  const isAdv = chapterData.isAdvancedOnly === true;
+
+  modalContent.innerHTML = `
+    <h3 style="margin-bottom:8px; font-size:1.2rem; color:#fff;">Configure Chapter</h3>
+    <p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin-bottom:15px;">${chapterName}</p>
+
+    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">PREPARATION STATUS</label>
+    <select id="edit-chapter-status" style="margin-top:5px; margin-bottom:15px;">
+      <option value="weak" ${currentStatus === 'weak' ? 'selected' : ''}>❌ Weak</option>
+      <option value="average" ${currentStatus === 'average' ? 'selected' : ''}>⚡ Average</option>
+      <option value="strong" ${currentStatus === 'strong' ? 'selected' : ''}>🔥 Strong</option>
+      <option value="mastered" ${currentStatus === 'mastered' ? 'selected' : ''}>🏆 Mastered</option>
+    </select>
+
+    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">HIGH-YIELD WEIGHTED PRIORITY</label>
+    <select id="edit-chapter-priority" style="margin-top:5px; margin-bottom:15px;">
+      <option value="high" ${currentPriority === 'high' ? 'selected' : ''}>🔥 High Priority</option>
+      <option value="medium" ${currentPriority === 'medium' ? 'selected' : ''}>⚡ Medium Priority</option>
+      <option value="low" ${currentPriority === 'low' ? 'selected' : ''}>❄️ Low Priority</option>
+    </select>
+
+    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">TOTAL PYQs SOLVED</label>
+    <input type="number" id="edit-chapter-pyq" value="${currentPYQs}" min="0" style="margin-top:5px; margin-bottom:15px;">
+
+    <div class="checkbox-row" style="margin-top:5px; margin-bottom:20px;">
+      <input type="checkbox" id="edit-chapter-adv-only" ${isAdv ? 'checked' : ''}>
+      <span style="font-size:0.85rem;">Tag as Core JEE Advanced Exclusive Unit</span>
+    </div>
+
+    <div class="action-row" style="display:flex; gap:10px;">
+      <button id="modal-save-btn" style="margin:0;">Save Parameters</button>
+      <button id="modal-close-btn" style="background:var(--card2); box-shadow:none; margin:0;">Cancel</button>
+    </div>
+  `;
+
+  modalOverlay.style.display = "flex";
+
+  document.getElementById("modal-close-btn").onclick = () => {
+    modalOverlay.style.display = "none";
+  };
+
+  document.getElementById("modal-save-btn").onclick = () => {
+    const nextStatus = document.getElementById("edit-chapter-status").value;
+    const nextPriority = document.getElementById("edit-chapter-priority").value;
+    const nextPYQs = parseInt(document.getElementById("edit-chapter-pyq").value, 10) || 0;
+    const nextAdvFlag = document.getElementById("edit-chapter-adv-only").checked;
+
+    window.appData.chapters[chapterName].status = nextStatus;
+    window.appData.chapters[chapterName].priority = nextPriority;
+    window.appData.chapters[chapterName].pyq = nextPYQs;
+    window.appData.chapters[chapterName].isAdvancedOnly = nextAdvFlag;
+    window.appData.chapters[chapterName].lastRevised = new Date().toISOString(); 
+
+    if (typeof window.saveData === "function") window.saveData();
+    
+    modalOverlay.style.display = "none";
+
+    renderChapterGrid();
+    if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
+    if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
+    if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
+    if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
+  };
+}
+
 // Bind methods onto window target array layers for structural protection
 window.renderChapterGrid = renderChapterGrid;
 window.updateAdvancedTrackerMetric = updateAdvancedTrackerMetric;
+window.showChapterEditModal = showChapterEditModal;
