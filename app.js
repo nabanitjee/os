@@ -12,7 +12,7 @@ const APP_NAME = "JEE Nexus";
 let appData = JSON.parse(
   localStorage.getItem(STORAGE_KEY)
 ) || {
-  jeeMainDate: "2027-01-15",
+  jeeMainDate: "2027-01-01",
   jeeAdvancedDate: "",
   chapters: {},
   journal: [],
@@ -156,7 +156,7 @@ function renderStatusCounts() {
   let weak = 0, average = 0, strong = 0, mastered = 0;
 
   Object.values(appData.chapters).forEach(ch => {
-    if ((ch.status === "strong" || ch.status === "mastered") && (ch.pyq || 0) < 15) {
+    if ((ch.status === "strong" || ch.status === "mastered") && (ch.pyq || 0) < 10) {
       ch.status = "average"; 
     }
 
