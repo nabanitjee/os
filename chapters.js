@@ -178,7 +178,7 @@ function showChapterEditModal(chapterName) {
     modalContent.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
         <div>
-          <h3 style="margin:0; font-size:1.2rem; color:#fff;">Configure Chapter</h3>
+          <h3 style="margin:0; font-size:1 rem; color:#fff;">Chapter</h3>
           <p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin:4px 0 0 0;">${chapterName}</p>
         </div>
         <button id="modal-delete-trigger-btn" style="background:#2d1a22; color:var(--weak); padding:8px 12px; margin:0; font-size:0.9rem; border:1px solid rgba(255,91,91,0.2); border-radius:10px;" title="Delete Custom Chapter">🗑️</button>
