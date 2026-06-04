@@ -1,8 +1,9 @@
 // ==========================================================================
-// QUEST & MISSION SYSTEM MODULE V4 (WITH AUTOMATED 3:00 AM TIMESHIFT RESET)
+// QUEST & MISSION TRACKER MODULE V4 (WITH PERSISTENT GLOBAL SCOPE HOOKS)
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (!window.appData) window.appData = {};
   if (!window.appData.dailyQuest) {
     window.appData.dailyQuest = {
       task1: "", task2: "", task3: "",
@@ -12,35 +13,34 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Trigger automated chron validation loop before executing layout updates
-  validateAndResetDailyQuests();
-  renderQuest();
+  if (typeof window.validateAndResetDailyQuests === "function") {
+    window.validateAndResetDailyQuests();
+  }
+  if (typeof window.renderQuest === "function") {
+    window.renderQuest();
+  }
 });
 
-function validateAndResetDailyQuests() {
+window.validateAndResetDailyQuests = function() {
   if (!window.appData || !window.appData.dailyQuest) return;
 
-  // 1. Grab current device system time metrics
   const now = new Date();
   
-  // 2. SHIFT CUSTOM CUTOFF BOUNDARY: Subtract 3 hours from current time.
-  // This safely pushes late-night study sessions (12:00 AM - 2:59 AM) into yesterday's bucket.
+  // SHIFT CUSTOM CUTOFF BOUNDARY: Subtract 3 hours from current time.
   now.setHours(now.getHours() - 3);
 
-  // 3. Generate the shifted comparison date string (YYYY-MM-DD)
   const todayStr = now.toISOString().split("T")[0];
 
-  // 4. Compare with last recorded timestamp node to trigger reset safely
   if (window.appData.lastActivityDate && window.appData.lastActivityDate !== todayStr) {
-    // Past 3:00 AM on a new calendar tracking day: clear checkmarks smoothly!
     window.appData.dailyQuest.done1 = false;
     window.appData.dailyQuest.done2 = false;
     window.appData.dailyQuest.done3 = false;
 
     if (typeof window.saveData === "function") window.saveData();
   }
-}
+};
 
-function showQuestEditForm() {
+window.showQuestEditForm = function() {
   const quest = window.appData.dailyQuest;
 
   const formHTML = `
@@ -72,9 +72,9 @@ function showQuestEditForm() {
 
   if (typeof window.showModal === "function") window.showModal(formHTML);
   else if (typeof showModal === "function") showModal(formHTML);
-}
+};
 
-function processQuestSubmit() {
+window.processQuestSubmit = function() {
   window.appData.dailyQuest = {
     task1: document.getElementById("q-t1").value.trim(),
     task2: document.getElementById("q-t2").value.trim(),
@@ -86,10 +86,10 @@ function processQuestSubmit() {
   if (typeof window.hideModal === "function") window.hideModal();
   else if (typeof hideModal === "function") hideModal();
 
-  renderQuest();
-}
+  window.renderQuest();
+};
 
-function toggleQuest(taskNo) {
+window.toggleQuest = function(taskNo) {
   const key = "done" + taskNo;
   window.appData.dailyQuest[key] = !window.appData.dailyQuest[key];
 
@@ -99,10 +99,10 @@ function toggleQuest(taskNo) {
     if (typeof window.saveData === "function") window.saveData();
   }
 
-  renderQuest();
-}
+  window.renderQuest();
+};
 
-function renderQuest() {
+window.renderQuest = function() {
   const box = document.getElementById("quest-list");
   if (!box) return;
 
@@ -127,13 +127,13 @@ function renderQuest() {
       </button>
     </div>
   `;
-}
+};
 
 // ==========================================================================
 // UPGRADED MISSION BOARD MULTI-TRACKER MODULE LAYER
 // ==========================================================================
 
-function showMissionForm() {
+window.showMissionForm = function() {
   const formHTML = `
     <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
       <h3 style="margin-top:0; color:var(--accent); font-weight:900;">🎯 INITIALIZE CORE MISSION</h3>
@@ -154,9 +154,9 @@ function showMissionForm() {
 
   if (typeof window.showModal === "function") window.showModal(formHTML);
   else if (typeof showModal === "function") showModal(formHTML);
-}
+};
 
-function processMissionSubmit() {
+window.processMissionSubmit = function() {
   const inputEl = document.getElementById("m-objective");
   if (!inputEl) return;
 
@@ -175,10 +175,10 @@ function processMissionSubmit() {
   if (typeof window.hideModal === "function") window.hideModal();
   else if (typeof hideModal === "function") hideModal();
 
-  renderMissionBoard();
-}
+  window.renderMissionBoard();
+};
 
-function showCompleteMissionForm(missionId) {
+window.showCompleteMissionForm = function(missionId) {
   const formHTML = `
     <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
       <h3 style="margin-top:0; color:#10b981; font-weight:900;">✨ MISSION ACCOMPLISHED</h3>
@@ -198,9 +198,9 @@ function showCompleteMissionForm(missionId) {
 
   if (typeof window.showModal === "function") window.showModal(formHTML);
   else if (typeof showModal === "function") showModal(formHTML);
-}
+};
 
-function processArchiveMission(missionId) {
+window.processArchiveMission = function(missionId) {
   const durationInp = document.getElementById("m-duration-input");
   const durationLogged = durationInp ? durationInp.value.trim() || "Untimed" : "Untimed";
 
@@ -225,18 +225,18 @@ function processArchiveMission(missionId) {
   if (typeof window.hideModal === "function") window.hideModal();
   else if (typeof hideModal === "function") hideModal();
 
-  renderMissionBoard();
+  window.renderMissionBoard();
   if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory();
-}
+};
 
-function deleteActiveMission(missionId) {
+window.deleteActiveMission = function(missionId) {
   if (!window.appData.activeMissionsList) return;
   window.appData.activeMissionsList = window.appData.activeMissionsList.filter(m => m.id !== missionId);
   if (typeof window.saveData === "function") window.saveData();
-  renderMissionBoard();
-}
+  window.renderMissionBoard();
+};
 
-function renderMissionBoard() {
+window.renderMissionBoard = function() {
   const boardElement = document.getElementById("widget-mission-container");
   if (!boardElement) return;
 
@@ -246,7 +246,7 @@ function renderMissionBoard() {
     <div class="card" style="padding:16px; background:var(--card1); border-radius:14px; text-align: left;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h3 style="margin:0; font-size:1.1rem; color:#fff; font-weight:bold;">🎯 Mission Board (${list.length})</h3>
-        <button onclick="window.showMissionForm()" style="background:var(--accent); margin:0; padding:6px 12px; font-size:0.8rem; font-weight:bold; border-radius:6px; width:auto;">+ Add Mission</button>
+        <button onclick="window.showMissionForm()" style="background:var(--accent); margin:0; padding:6px 12px; font-size:0.8rem; font-weight:bold; border-radius:6px; width:auto; cursor:pointer;">+ Add Mission</button>
       </div>
   `;
 
@@ -259,8 +259,8 @@ function renderMissionBoard() {
         <div style="background:var(--card2); padding:10px 12px; border-radius:10px; border-left:4px solid var(--accent); display:flex; flex-direction:column; gap:6px;">
           <p style="margin:0; font-size:0.92rem; color:#fff; font-weight:500; line-height:1.3; white-space:pre-wrap;">${m.objective}</p>
           <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
-            <button onclick="window.showCompleteMissionForm(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff;">✔ Complete</button>
-            <button onclick="window.deleteActiveMission(${m.id})" style="background:#b91c1c; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto;">Remove</button>
+            <button onclick="window.showCompleteMissionForm(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff; cursor:pointer;">✔ Complete</button>
+            <button onclick="window.deleteActiveMission(${m.id})" style="background:#b91c1c; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; cursor:pointer;">Remove</button>
           </div>
         </div>
       `;
@@ -270,16 +270,16 @@ function renderMissionBoard() {
 
   html += `</div>`;
   boardElement.innerHTML = html;
-}
+};
 
-function renderSettingsMissionHistory() {
+window.renderSettingsMissionHistory = function() {
   const historyBox = document.getElementById("settings-mission-history-log");
   if (!historyBox) return;
 
   const completedList = window.appData.completedMissionsLog || [];
-  
+
   let html = `<h4 style="color:var(--accent); margin-top:15px; margin-bottom:8px; font-size:0.95rem; text-align:left;">🏆 ARCHIVED MISSIONS LOG (${completedList.length})</h4>`;
-  
+
   if (completedList.length === 0) {
     html += `<div style="opacity:0.5; font-size:0.8rem; font-style:italic; padding:10px; background:var(--card2); border-radius:8px; text-align:center;">No completed milestones recorded in this session profile yet.</div>`;
     historyBox.innerHTML = html;
@@ -287,7 +287,7 @@ function renderSettingsMissionHistory() {
   }
 
   html += `<div style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto; padding-right:2px;">`;
-  
+
   const sortedHistory = [...completedList].sort((a,b) => b.id - a.id);
   sortedHistory.forEach(h => {
     html += `
@@ -302,22 +302,7 @@ function renderSettingsMissionHistory() {
       </div>
     `;
   });
-  
+
   html += `</div>`;
   historyBox.innerHTML = html;
-}
-
-// Global exposure registration routing hooks
-window.toggleQuest = toggleQuest;
-window.showQuestEditForm = showQuestEditForm;
-window.processQuestSubmit = processQuestSubmit;
-window.renderQuest = renderQuest;
-window.validateAndResetDailyQuests = validateAndResetDailyQuests;
-
-window.showMissionForm = showMissionForm;
-window.processMissionSubmit = processMissionSubmit;
-window.showCompleteMissionForm = showCompleteMissionForm;
-window.processArchiveMission = processArchiveMission;
-window.deleteActiveMission = deleteActiveMission;
-window.renderMissionBoard = renderMissionBoard;
-window.renderSettingsMissionHistory = renderSettingsMissionHistory;
+};
