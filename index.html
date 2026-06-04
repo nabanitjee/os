@@ -246,21 +246,69 @@
     <div id="future-note-list"></div>
   </section>  
 
+  <!-- SETTINGS CONTROL CENTER -->  
   <section id="settings-page" class="page">
-    <h2>Settings</h2>
+    <h2>Control Center</h2>
+
+    <!-- 1. NEON THEME ACCENT SWITCHER -->
     <div class="card">
-      <h3>Exam Dates</h3>
-      <label>JEE Main Date</label>
+      <h3>🎨 UI Accent Theme Changer</h3>
+      <p style="font-size:0.8rem; opacity:0.6; margin-bottom:12px;">Switch the primary neon aura of your dashboard environment on the fly.</p>
+      <div class="theme-orb-container">
+        <div class="theme-orb orb-blue active-orb" onclick="switchNexusTheme('theme-blue')" title="Cyber Blue"></div>
+        <div class="theme-orb orb-green" onclick="switchNexusTheme('theme-green')" title="Emerald Focus"></div>
+        <div class="theme-orb orb-violet" onclick="switchNexusTheme('theme-violet')" title="Quantum Violet"></div>
+        <div class="theme-orb orb-crimson" onclick="switchNexusTheme('theme-crimson')" title="Fiery Crimson"></div>
+      </div>
+    </div>
+
+    <!-- 2. CORE EXAM DATE SCHEDULER -->
+    <div class="card">
+      <h3>📅 Core Exam Target Dates</h3>
+      <label style="font-size:0.85rem; color:#94a3b8; font-weight:bold;">JEE Main Date</label>
       <input id="jee-main-date" type="date">
-      <label>JEE Advanced Date</label>
+      <label style="font-size:0.85rem; color:#94a3b8; font-weight:bold; margin-top:10px;">JEE Advanced Date</label>
       <input id="jee-advanced-date" type="date">
     </div>
 
+    <!-- 3. HOMEPAGE WIDGET LAYOUT CONTROLLER -->
     <div class="card">
-      <button id="export-btn">Export Backup</button>
-      <button id="import-btn">Import Backup</button>
+      <h3>🎛️ Dashboard Widget Visibility</h3>
+      <p style="font-size:0.8rem; opacity:0.6; margin-bottom:12px;">Toggle homepage modules on or off to clean up your study feed.</p>
+      <div style="background:var(--card2); padding:4px 12px 12px 12px; border-radius:14px;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="toggle-widget-future" onchange="toggleWidgetVisibility('future', this.checked)">
+          <span>Show Message From Future Me</span>
+        </div>
+        <div class="checkbox-row" style="margin-top:10px;">
+          <input type="checkbox" id="toggle-widget-clat" onchange="toggleWidgetVisibility('clat', this.checked)">
+          <span>Show CLAT Weekly Hours Card</span>
+        </div>
+        <div class="checkbox-row" style="margin-top:10px;">
+          <input type="checkbox" id="toggle-widget-quest" onchange="toggleWidgetVisibility('quest', this.checked)">
+          <span>Show Today's Quest Tracker</span>
+        </div>
+      </div>
     </div>
-  </section>  
+
+    <!-- 4. SYLLABUS DISTRIBUTION ANALYZER -->
+    <div class="card">
+      <h3>📊 Syllabus Distribution Balance</h3>
+      <div id="settings-distribution-analyzer" style="font-size:0.88rem; line-height:1.5; color:#e2e8f0;">
+        Calculating distribution metrics...
+      </div>
+    </div>
+
+    <!-- SYSTEM DATA BACKUP CONTROLS -->
+    <div class="card">
+      <h3>💾 System Database Maintenance</h3>
+      <div class="action-row" style="gap:10px; margin-top:5px;">
+        <button id="export-btn" style="margin:0;">Export Backup</button>
+        <button id="import-btn" style="background:var(--card2); box-shadow:none; margin:0;">Import Backup</button>
+      </div>
+    </div>
+  </section>
+
 
   <div id="modal-overlay">
     <div id="modal-box">
