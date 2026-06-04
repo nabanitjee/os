@@ -472,7 +472,7 @@ canvas {
   margin: 0;
   padding: 10px 4px;
   border-radius: 14px;
-  font-size: 1.2rem;
+  font-size: 1 rem;
   box-shadow: none;
   display: flex;
   align-items: center;
