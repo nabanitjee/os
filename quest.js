@@ -1,5 +1,5 @@
 // ==========================================================================
-// QUEST & MISSION TRACKER MODULE V4 (WITH MULTI-MISSION LOG & 3AM RESET)
+// QUEST & MISSION SYSTEM MODULE V4 (WITH AUTOMATED 3:00 AM TIMESHIFT RESET)
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -65,7 +65,7 @@ function showQuestEditForm() {
       
       <div class="action-row" style="margin-top:20px; display:flex; gap:10px;">
         <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; flex:1; padding:12px;">Cancel</button>
-        <button onclick="processQuestSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px;">Deploy Slate</button>
+        <button onclick="window.processQuestSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px;">Deploy Slate</button>
       </div>
     </div>
   `;
@@ -110,19 +110,19 @@ function renderQuest() {
 
   box.innerHTML = `
     <div style="display:flex; flex-direction:column; gap:10px;">
-      <div onclick="toggleQuest(1)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
+      <div onclick="window.toggleQuest(1)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
         <span style="font-size:1.1rem;">${quest.done1 ? "✅" : "⬜"}</span>
         <span style="font-size:0.95rem; text-decoration: ${quest.done1 ? 'line-through' : 'none'}; opacity: ${quest.done1 ? 0.5 : 1}; text-align:left;">${quest.task1 || "No Active Target"}</span>
       </div>
-      <div onclick="toggleQuest(2)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
+      <div onclick="window.toggleQuest(2)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
         <span style="font-size:1.1rem;">${quest.done2 ? "✅" : "⬜"}</span>
         <span style="font-size:0.95rem; text-decoration: ${quest.done2 ? 'line-through' : 'none'}; opacity: ${quest.done2 ? 0.5 : 1}; text-align:left;">${quest.task2 || "No Active Target"}</span>
       </div>
-      <div onclick="toggleQuest(3)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
+      <div onclick="window.toggleQuest(3)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
         <span style="font-size:1.1rem;">${quest.done3 ? "✅" : "⬜"}</span>
         <span style="font-size:0.95rem; text-decoration: ${quest.done3 ? 'line-through' : 'none'}; opacity: ${quest.done3 ? 0.5 : 1}; text-align:left;">${quest.task3 || "No Active Target"}</span>
       </div>
-      <button onclick="showQuestEditForm()" style="width:100%; margin-top:4px; background:var(--accent); font-weight:bold; padding:12px; border-radius:8px;">
+      <button onclick="window.showQuestEditForm()" style="width:100%; margin-top:4px; background:var(--accent); font-weight:bold; padding:12px; border-radius:8px;">
         ⚙️ Edit Quest List
       </button>
     </div>
@@ -147,7 +147,7 @@ function showMissionForm() {
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
         <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; flex:1; padding:12px; border-radius:8px;">Cancel</button>
-        <button onclick="processMissionSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px; border-radius:8px;">Deploy Mission</button>
+        <button onclick="window.processMissionSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px; border-radius:8px;">Deploy Mission</button>
       </div>
     </div>
   `;
@@ -191,7 +191,7 @@ function showCompleteMissionForm(missionId) {
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
         <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; flex:1; padding:12px; border-radius:8px;">Cancel</button>
-        <button onclick="processArchiveMission(${missionId})" style="background:#10b981; margin:0; font-weight:bold; flex:1; padding:12px; border-radius:8px; color:#fff;">Archive Log</button>
+        <button onclick="window.processArchiveMission(${missionId})" style="background:#10b981; margin:0; font-weight:bold; flex:1; padding:12px; border-radius:8px; color:#fff;">Archive Log</button>
       </div>
     </div>
   `;
@@ -246,7 +246,7 @@ function renderMissionBoard() {
     <div class="card" style="padding:16px; background:var(--card1); border-radius:14px; text-align: left;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h3 style="margin:0; font-size:1.1rem; color:#fff; font-weight:bold;">🎯 Mission Board (${list.length})</h3>
-        <button onclick="showMissionForm()" style="background:var(--accent); margin:0; padding:6px 12px; font-size:0.8rem; font-weight:bold; border-radius:6px; width:auto;">+ Add Mission</button>
+        <button onclick="window.showMissionForm()" style="background:var(--accent); margin:0; padding:6px 12px; font-size:0.8rem; font-weight:bold; border-radius:6px; width:auto;">+ Add Mission</button>
       </div>
   `;
 
@@ -259,8 +259,8 @@ function renderMissionBoard() {
         <div style="background:var(--card2); padding:10px 12px; border-radius:10px; border-left:4px solid var(--accent); display:flex; flex-direction:column; gap:6px;">
           <p style="margin:0; font-size:0.92rem; color:#fff; font-weight:500; line-height:1.3; white-space:pre-wrap;">${m.objective}</p>
           <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
-            <button onclick="showCompleteMissionForm(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff;">✔ Complete</button>
-            <button onclick="deleteActiveMission(${m.id})" style="background:#b91c1c; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto;">Remove</button>
+            <button onclick="window.showCompleteMissionForm(${m.id})" style="background:#10b981; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto; font-weight:bold; color:#fff;">✔ Complete</button>
+            <button onclick="window.deleteActiveMission(${m.id})" style="background:#b91c1c; margin:0; padding:4px 10px; font-size:0.75rem; border-radius:6px; width:auto;">Remove</button>
           </div>
         </div>
       `;
