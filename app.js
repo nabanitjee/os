@@ -1,5 +1,5 @@
 // ==========================================================================
-// JEE NEXUS CORE ENGINE V4 (ANALYTICS & CRASH-PROOF BUNDLE)
+// JEE NEXUS CORE ENGINE V4 (ANALYTICS, CRASH-PROOF & BALANCED SORT)
 // ==========================================================================
 
 const STORAGE_KEY = "jee_nexus_master_db";
@@ -103,6 +103,10 @@ function renderDropDay() {
   const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
   el.textContent = diff + 1;
 }
+
+// ==========================================================================
+// RENDER STATS COUNTS
+// ==========================================================================
 
 function updateActivity() {
   const today = new Date().toISOString().split("T")[0];
@@ -248,7 +252,7 @@ function compileMistakeRepository() {
 }
 
 // ==========================================================================
-// STRATEGIC REVISION DIRECTORY ENGINE
+// STRATEGIC REVISION DIRECTORY ENGINE (BALANCED SORT CHRONOLOGY)
 // ==========================================================================
 
 function getTimelineLabelAndColor(lastRevisedString) {
@@ -276,12 +280,17 @@ function renderBacklogRevision() {
   const sortedBacklog = items
     .map(([name, data]) => ({ name, ...data }))
     .sort((a, b) => {
-      const weight = { high: 3, medium: 2, low: 1 };
-      const priorityA = weight[a.priority || "medium"];
-      const priorityB = weight[b.priority || "medium"];
-      if (priorityB !== priorityA) return priorityB - priorityA;
-      if (!a.lastRevised) return -1;
-      if (!b.lastRevised) return 1;
+      // 1. Never revised chapters bubble to top
+      if (!a.lastRevised && b.lastRevised) return -1;
+      if (a.lastRevised && !b.lastRevised) return 1;
+      
+      // 2. If both unrevised, sort by weight importance priority
+      if (!a.lastRevised && !b.lastRevised) {
+        const weight = { high: 3, medium: 2, low: 1 };
+        return weight[b.priority || "medium"] - weight[a.priority || "medium"];
+      }
+      
+      // 3. If both revised, sort by oldest calendar age log stamp
       return new Date(a.lastRevised) - new Date(b.lastRevised);
     })
     .slice(0, 5);
@@ -318,15 +327,18 @@ function renderFullMasterDirectory() {
     return;
   }
 
+  // Balanced chronology sort chain across directory array entries
   const fullDirectorySorted = items
     .map(([name, data]) => ({ name, ...data }))
     .sort((a, b) => {
-      const weight = { high: 3, medium: 2, low: 1 };
-      const prA = weight[a.priority || "medium"];
-      const prB = weight[b.priority || "medium"];
-      if (prB !== prA) return prB - prA;
-      if (!a.lastRevised) return -1;
-      if (!b.lastRevised) return 1;
+      if (!a.lastRevised && b.lastRevised) return -1;
+      if (a.lastRevised && !b.lastRevised) return 1;
+      
+      if (!a.lastRevised && !b.lastRevised) {
+        const weight = { high: 3, medium: 2, low: 1 };
+        return weight[b.priority || "medium"] - weight[a.priority || "medium"];
+      }
+      
       return new Date(a.lastRevised) - new Date(b.lastRevised);
     });
 
@@ -399,7 +411,7 @@ function safeRun(func, name) {
       window[name]();
     }
   } catch (error) {
-    console.warn(`[Safe-Shield Bypassed] Component execution delay on: ${name}. Context:`, error.message);
+    console.warn(`[Safe-Shield] Component delay on: ${name}. Context:`, error.message);
   }
 }
 
@@ -407,25 +419,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const titleEl = document.getElementById("nexus-app-title");
   if (titleEl) titleEl.textContent = APP_NAME;
 
-  // Run core time engines safely
   safeRun(updateActivity, "updateActivity");
   safeRun(updateCountdowns, "updateCountdowns");
   safeRun(renderDropDay, "renderDropDay");
   safeRun(renderStreak, "renderStreak");
   
-  // Run data loops inside crash-isolated boundaries
   safeRun(renderPrepIndex, "renderPrepIndex");
   safeRun(renderStatusCounts, "renderStatusCounts");
   safeRun(renderMissionBoard, "renderMissionBoard");
   safeRun(renderBacklogRevision, "renderBacklogRevision");
   safeRun(evaluatePerformanceRedFlags, "evaluatePerformanceRedFlags");
 
-  // Force navigate screen view open safely no matter what
   const savedPage = sessionStorage.getItem("active_page_v3") || "dashboard-page";
   openPage(savedPage);
 });
 
-// Secondary delayed safety layout synchronization check loop
 setTimeout(() => {
   safeRun(window.renderSubjectProgress, "renderSubjectProgress");
   safeRun(window.renderLowestPYQList, "renderLowestPYQList");
@@ -437,7 +445,7 @@ setTimeout(() => {
   safeRun(window.renderQuestList, "renderQuestList");
 }, 250);
 
-// Global Scope Exports
+// Global Scope Window Exports
 window.appData = appData;
 window.saveData = saveData;
 window.updateActivity = updateActivity;
