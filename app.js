@@ -133,14 +133,17 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 📊 INTERACTIVE CENTRAL PYQ CARD TRACKER ENGINE
+// 📊 NEON PROGRESS CIRCLE CARD ENGINE
 function renderTotalPYQsAndMilestones() {
-  document.getElementById("nexus-inline-rank-badge")?.remove();
-
   const centralCardBtn = document.getElementById("nexus-pyq-card-button");
   const counterDisplay = document.getElementById("dashboard-pyq-counter-value");
+  const tierEmojiDisplay = document.getElementById("dashboard-pyq-tier-emoji");
+  const tierTitleDisplay = document.getElementById("dashboard-pyq-tier-title");
+  const progressRing = document.getElementById("dashboard-pyq-progress-ring");
+  
   if (!centralCardBtn || !counterDisplay) return;
 
+  // 1. Calculate cumulative sum parameters matching ch.pyq strictly
   let totalPYQs = 0;
   Object.values(window.appData.chapters || {}).forEach(ch => {
     if (ch) {
@@ -152,18 +155,43 @@ function renderTotalPYQsAndMilestones() {
     }
   });
 
+  // 2. Compute current rank bracket tier structure strings
   let rankEmoji = "🥉";
   let rankTitle = "Rookie";
-  if (totalPYQs >= 1000) { rankEmoji = "👑"; rankTitle = "Nexus God"; }
-  else if (totalPYQs >= 750) { rankEmoji = "⚡"; rankTitle = "Monster"; }
-  else if (totalPYQs >= 500) { rankEmoji = "🥇"; rankTitle = "Slayer"; }
-  else if (totalPYQs >= 250) { rankEmoji = "🥈"; rankTitle = "Grinder"; }
+  let themeColor = "#38bdf8"; // Light Blue for Rookie
+  
+  if (totalPYQs >= 1000) { rankEmoji = "👑"; rankTitle = "Nexus God"; themeColor = "#f59e0b"; } // Amber/Gold
+  else if (totalPYQs >= 750) { rankEmoji = "⚡"; rankTitle = "Monster"; themeColor = "#ef4444"; } // Crimson Red
+  else if (totalPYQs >= 500) { rankEmoji = "🥇"; rankTitle = "Slayer"; themeColor = "#10b981"; } // Emerald Green
+  else if (totalPYQs >= 250) { rankEmoji = "🥈"; rankTitle = "Grinder"; themeColor = "#a855f7"; } // Quantum Purple
 
+  // 3. Hydrate live layout counters text nodes
   counterDisplay.textContent = totalPYQs;
+  if (tierEmojiDisplay) tierEmojiDisplay.textContent = rankEmoji;
+  if (tierTitleDisplay) {
+    tierTitleDisplay.textContent = rankTitle;
+    tierTitleDisplay.style.color = themeColor;
+  }
 
-  centralCardBtn.onmouseenter = () => centralCardBtn.style.transform = "scale(1.03)";
-  centralCardBtn.onmouseleave = () => centralCardBtn.style.transform = "scale(1)";
+  // 4. Drive the SVG stroke-dashoffset math animation loops cleanly
+  if (progressRing) {
+    const targetStep = 50;
+    const progressToNext = totalPYQs % targetStep;
+    const radius = 26;
+    const circumference = 2 * Math.PI * radius; // Approx 163.36
+    
+    // Calculate inverse offset length
+    const offsetValue = circumference - (progressToNext / targetStep) * circumference;
+    progressRing.style.stroke = themeColor;
+    progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+    progressRing.style.strokeDashoffset = offsetValue;
+    
+    // Inject dynamic outer fluid glow matches
+    centralCardBtn.style.boxShadow = `0 4px 20px rgba(0, 0, 0, 0.3), 0 0 12px ${themeColor}15`;
+    centralCardBtn.style.borderColor = `${themeColor}30`;
+  }
 
+  // Handle the modal overlay on click event sequence
   centralCardBtn.onclick = function(e) {
     e.stopPropagation();
     
@@ -202,8 +230,8 @@ function renderTotalPYQsAndMilestones() {
           <div style="display:flex; align-items:center; gap:12px;">
             <span style="font-size:2rem;">${rankEmoji}</span>
             <div>
-              <h4 style="margin:0; font-size:1.15rem; font-weight:900; color:#fff;">${rankTitle}</h4>
-              <p style="margin:2px 0 0 0; font-size:0.85rem; color:var(--accent); font-weight:bold;">Total Solved: ${totalPYQs}</p>
+              <h4 style="margin:0; font-size:1.15rem; font-weight:900; color:${themeColor};">${rankTitle}</h4>
+              <p style="margin:2px 0 0 0; font-size:0.85rem; color:#94a3b8; font-weight:bold;">Total Solved: ${totalPYQs}</p>
             </div>
           </div>
         </div>
@@ -211,10 +239,10 @@ function renderTotalPYQsAndMilestones() {
         <div style="margin-bottom:20px; background:rgba(255,255,255,0.02); padding:12px; border-radius:12px;">
           <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:6px;">
             <span>Next Target: ${nextMilestoneTarget}</span>
-            <span style="color:var(--accent);">${percentageToNext}%</span>
+            <span style="color:${themeColor};">${percentageToNext}%</span>
           </div>
           <div style="width:100%; height:8px; background:rgba(255,255,255,0.08); border-radius:10px; overflow:hidden;">
-            <div style="width:${percentageToNext}%; height:100%; background:linear-gradient(90deg, var(--accent), #10b981); border-radius:10px; transition:width 0.4s ease;"></div>
+            <div style="width:${percentageToNext}%; height:100%; background:${themeColor}; border-radius:10px; transition:width 0.4s ease;"></div>
           </div>
           <div style="font-size:0.72rem; opacity:0.5; margin-top:4px; text-align:right;">${progressToNext} / ${targetStep} questions remaining</div>
         </div>
@@ -222,11 +250,11 @@ function renderTotalPYQsAndMilestones() {
         <div style="margin-bottom:15px;">
           <div style="font-size:0.75rem; font-weight:bold; opacity:0.6; margin-bottom:8px; letter-spacing:0.5px;">RANK TIER MATRIX LEGEND</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; background:rgba(255,255,255,0.02); padding:10px; border-radius:10px;">
-            <div style="opacity:${rankTitle==='Rookie'?'1':'0.5'}; font-weight:${rankTitle==='Rookie'?'bold':'normal'};">🏅 Rookie (0+)</div>
-            <div style="opacity:${rankTitle==='Grinder'?'1':'0.5'}; font-weight:${rankTitle==='Grinder'?'bold':'normal'};">🥈 Grinder (250+)</div>
-            <div style="opacity:${rankTitle==='Slayer'?'1':'0.5'}; font-weight:${rankTitle==='Slayer'?'bold':'normal'};">🥇 Slayer (500+)</div>
-            <div style="opacity:${rankTitle==='Monster'?'1':'0.5'}; font-weight:${rankTitle==='Monster'?'bold':'normal'};">⚡ Monster (750+)</div>
-            <div style="grid-column:span 2; opacity:${rankTitle==='Nexus God'?'1':'0.5'}; font-weight:${rankTitle==='Nexus God'?'bold':'normal'}; text-align:center; margin-top:4px; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px;">👑 Nexus God (1000+)</div>
+            <div style="opacity:${rankTitle==='Rookie'?'1':'0.5'}; font-weight:${rankTitle==='Rookie'?'bold':'normal'}; color:#38bdf8;">🥉 Rookie (0+)</div>
+            <div style="opacity:${rankTitle==='Grinder'?'1':'0.5'}; font-weight:${rankTitle==='Grinder'?'bold':'normal'}; color:#a855f7;">🥈 Grinder (250+)</div>
+            <div style="opacity:${rankTitle==='Slayer'?'1':'0.5'}; font-weight:${rankTitle==='Slayer'?'bold':'normal'}; color:#10b981;">🥇 Slayer (500+)</div>
+            <div style="opacity:${rankTitle==='Monster'?'1':'0.5'}; font-weight:${rankTitle==='Monster'?'bold':'normal'}; color:#ef4444;">⚡ Monster (750+)</div>
+            <div style="grid-column:span 2; opacity:${rankTitle==='Nexus God'?'1':'0.5'}; font-weight:${rankTitle==='Nexus God'?'bold':'normal'}; text-align:center; margin-top:4px; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px; color:#f59e0b;">👑 Nexus God (1000+)</div>
           </div>
         </div>
 
