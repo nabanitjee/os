@@ -1,6 +1,6 @@
-// =========================
-// QUEST SYSTEM V4
-// =========================
+// ==========================================================================
+// QUEST & MISSION SYSTEM MODULE V4 (WITH AUTOMATED CHRON MIDNIGHT RESET)
+// ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   if (!window.appData.dailyQuest) {
@@ -8,16 +8,35 @@ document.addEventListener("DOMContentLoaded", () => {
       task1: "", task2: "", task3: "",
       done1: false, done2: false, done3: false
     };
-    saveData();
+    if (typeof window.saveData === "function") window.saveData();
   }
+  
+  // Trigger automated chron validation loop before executing layout updates
+  validateAndResetDailyQuests();
   renderQuest();
 });
 
+function validateAndResetDailyQuests() {
+  if (!window.appData || !window.appData.dailyQuest) return;
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  
+  // If the last activity happened on a prior calendar date, reset checkmarks smoothly
+  if (window.appData.lastActivityDate && window.appData.lastActivityDate !== todayStr) {
+    // Only reset checkmarks so user has a fresh slate, keeping texts as templates
+    window.appData.dailyQuest.done1 = false;
+    window.appData.dailyQuest.done2 = false;
+    window.appData.dailyQuest.done3 = false;
+    
+    if (typeof window.saveData === "function") window.saveData();
+  }
+}
+
 function showQuestEditForm() {
   const quest = window.appData.dailyQuest;
-  
+
   const formHTML = `
-    <div class="modal-form-container" style="color:#fff; font-family:sans-serif; padding:5px;">
+    <div class="modal-form-container" style="color:#fff; font-family:sans-serif; padding:5px; text-align: left;">
       <h3 style="margin-top:0; color:var(--accent);">Configure Today's Quests</h3>
       <p style="font-size:0.8rem; opacity:0.6; margin:-5px 0 15px 0;">Updating clears completion checkmarks for the new track.</p>
       
@@ -36,14 +55,15 @@ function showQuestEditForm() {
         <input type="text" id="q-t3" value="${quest.task3}" placeholder="e.g. Attempt Maths Sectional" style="width:100%; padding:10px; background:#1b2d57; border:none; color:#fff; border-radius:8px; box-sizing:border-box; margin-top:4px;">
       </div>
       
-      <div class="action-row" style="margin-top:20px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0;">Cancel</button>
-        <button onclick="processQuestSubmit()" style="background:var(--accent); margin:0; font-weight:bold;">Deploy Slate</button>
+      <div class="action-row" style="margin-top:20px; display:flex; gap:10px;">
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; flex:1; padding:12px;">Cancel</button>
+        <button onclick="processQuestSubmit()" style="background:var(--accent); margin:0; font-weight:bold; flex:1; padding:12px;">Deploy Slate</button>
       </div>
     </div>
   `;
-  
-  if (typeof showModal === "function") showModal(formHTML);
+
+  if (typeof window.showModal === "function") window.showModal(formHTML);
+  else if (typeof showModal === "function") showModal(formHTML);
 }
 
 function processQuestSubmit() {
@@ -54,15 +74,24 @@ function processQuestSubmit() {
     done1: false, done2: false, done3: false
   };
 
-  saveData();
-  if (typeof hideModal === "function") hideModal();
+  if (typeof window.saveData === "function") window.saveData();
+  if (typeof window.hideModal === "function") window.hideModal();
+  else if (typeof hideModal === "function") hideModal();
+  
   renderQuest();
 }
 
 function toggleQuest(taskNo) {
   const key = "done" + taskNo;
   window.appData.dailyQuest[key] = !window.appData.dailyQuest[key];
-  saveData();
+  
+  // Increment streak matrix safely if you complete a target milestone
+  if (window.appData.dailyQuest[key] && typeof window.updateActivity === "function") {
+    window.updateActivity();
+  } else {
+    if (typeof window.saveData === "function") window.saveData();
+  }
+  
   renderQuest();
 }
 
@@ -76,31 +105,30 @@ function renderQuest() {
     <div style="display:flex; flex-direction:column; gap:10px;">
       <div onclick="toggleQuest(1)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
         <span style="font-size:1.1rem;">${quest.done1 ? "✅" : "⬜"}</span>
-        <span style="font-size:0.95rem; text-decoration: ${quest.done1 ? 'line-through' : 'none'}; opacity: ${quest.done1 ? 0.5 : 1};">${quest.task1 || "No Active Target"}</span>
+        <span style="font-size:0.95rem; text-decoration: ${quest.done1 ? 'line-through' : 'none'}; opacity: ${quest.done1 ? 0.5 : 1}; text-align:left;">${quest.task1 || "No Active Target"}</span>
       </div>
       <div onclick="toggleQuest(2)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
         <span style="font-size:1.1rem;">${quest.done2 ? "✅" : "⬜"}</span>
-        <span style="font-size:0.95rem; text-decoration: ${quest.done2 ? 'line-through' : 'none'}; opacity: ${quest.done2 ? 0.5 : 1};">${quest.task2 || "No Active Target"}</span>
+        <span style="font-size:0.95rem; text-decoration: ${quest.done2 ? 'line-through' : 'none'}; opacity: ${quest.done2 ? 0.5 : 1}; text-align:left;">${quest.task2 || "No Active Target"}</span>
       </div>
       <div onclick="toggleQuest(3)" style="display:flex; align-items:center; gap:12px; background:var(--card2); padding:12px; border-radius:14px; cursor:pointer; user-select:none;">
         <span style="font-size:1.1rem;">${quest.done3 ? "✅" : "⬜"}</span>
-        <span style="font-size:0.95rem; text-decoration: ${quest.done3 ? 'line-through' : 'none'}; opacity: ${quest.done3 ? 0.5 : 1};">${quest.task3 || "No Active Target"}</span>
+        <span style="font-size:0.95rem; text-decoration: ${quest.done3 ? 'line-through' : 'none'}; opacity: ${quest.done3 ? 0.5 : 1}; text-align:left;">${quest.task3 || "No Active Target"}</span>
       </div>
-      <button onclick="showQuestEditForm()" style="width:100%; margin-top:4px; background:var(--accent);">
+      <button onclick="showQuestEditForm()" style="width:100%; margin-top:4px; background:var(--accent); font-weight:bold; padding:12px; border-radius:8px;">
         ⚙️ Edit Quest List
       </button>
     </div>
   `;
 }
 
-window.toggleQuest = toggleQuest;
 // ==========================================================================
 // MISSION BOARD CONTROLLER MODULE LAYER
 // ==========================================================================
 
 function showMissionForm() {
   const currentMission = window.appData.activeMission || "";
-  
+
   const formHTML = `
     <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
       <h3 style="margin-top:0; color:var(--accent); font-weight:900;">🎯 INITIALIZE CORE MISSION</h3>
@@ -127,13 +155,9 @@ function processMissionSubmit() {
   const objectiveInput = document.getElementById("m-objective");
   if (!objectiveInput) return;
 
-  const missionText = objectiveInput.value.trim();
-  
-  // Save mission directly to master window cache configuration 
-  window.appData.activeMission = missionText;
-  
+  window.appData.activeMission = objectiveInput.value.trim();
+
   if (typeof window.saveData === "function") window.saveData();
-  
   if (typeof window.hideModal === "function") window.hideModal();
   else if (typeof hideModal === "function") hideModal();
 
@@ -143,10 +167,8 @@ function processMissionSubmit() {
 function clearActiveMission() {
   window.appData.activeMission = "";
   if (typeof window.saveData === "function") window.saveData();
-  
-  // Trigger activity tracker streak calculations safely on daily completion!
   if (typeof window.updateActivity === "function") window.updateActivity();
-  
+
   renderMissionBoard();
 }
 
@@ -158,32 +180,37 @@ function renderMissionBoard() {
 
   if (!activeGoal) {
     boardElement.innerHTML = `
-      <div class="card" style="padding:16px; background:var(--card1); border-radius:14px; position:relative;">
+      <div class="card" style="padding:16px; background:var(--card1); border-radius:14px; position:relative; text-align: left;">
         <h3 style="margin:0 0 6px 0; font-size:1.1rem; color:#fff; font-weight:bold;">🎯 Mission Board</h3>
         <p style="margin:0 0 12px 0; font-size:0.9rem; opacity:0.6; font-style:italic;">No active mission.</p>
-        <button onclick="window.showMissionForm()" style="background:var(--accent); margin:0; width:100%; padding:10px; font-weight:bold; border-radius:8px;">+ Initialize New Mission</button>
+        <button onclick="window.showMissionForm()" style="background:var(--accent); margin:0; width:100%; padding:12px; font-weight:bold; border-radius:8px;">+ Initialize New Mission</button>
       </div>
     `;
   } else {
     boardElement.innerHTML = `
-      <div class="card" style="padding:16px; background:var(--card1); border-radius:14px; border-left: 5px solid var(--accent); position:relative;">
+      <div class="card" style="padding:16px; background:var(--card1); border-radius:14px; border-left: 5px solid var(--accent); position:relative; text-align: left;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <h3 style="margin:0; font-size:1.1rem; color:var(--accent); font-weight:bold; letter-spacing:0.5px;">⚡ ACTIVE MISSION</h3>
           <span style="font-size:0.7rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; opacity:0.7; font-weight:bold;">IN PROGRESS</span>
         </div>
         <p style="margin:0 0 15px 0; font-size:1rem; color:#fff; font-weight:500; line-height:1.4; white-space:pre-wrap;">${activeGoal}</p>
         <div style="display:flex; gap:8px;">
-          <button onclick="window.clearActiveMission()" style="background:#10b981; margin:0; flex:2; font-weight:bold; padding:10px; border-radius:8px; color:#fff;">✨ Mark Completed</button>
-          <button onclick="window.showMissionForm()" style="background:var(--card2); margin:0; flex:1; padding:10px; border-radius:8px;">Edit</button>
+          <button onclick="window.clearActiveMission()" style="background:#10b981; margin:0; flex:2; font-weight:bold; padding:12px; border-radius:8px; color:#fff;">✨ Mark Completed</button>
+          <button onclick="window.showMissionForm()" style="background:var(--card2); margin:0; flex:1; padding:12px; border-radius:8px;">Edit</button>
         </div>
       </div>
     `;
   }
 }
 
-// Map endpoints back onto global namespace loop arrays
+// Global script namespace register map hooks
+window.toggleQuest = toggleQuest;
+window.showQuestEditForm = showQuestEditForm;
+window.processQuestSubmit = processQuestSubmit;
+window.renderQuest = renderQuest;
+window.validateAndResetDailyQuests = validateAndResetDailyQuests;
+
 window.showMissionForm = showMissionForm;
 window.processMissionSubmit = processMissionSubmit;
 window.clearActiveMission = clearActiveMission;
 window.renderMissionBoard = renderMissionBoard;
-
