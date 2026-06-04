@@ -220,7 +220,113 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 50);
 });
+// ==========================================================================
+// ADDITION: MISSING BACKLOG & MASTER DIRECTORY UI RENDER ENGINES
+// ==========================================================================
 
+function renderBacklogRevision() {
+  const target = document.getElementById("backlog-revision-list");
+  if (!target) return;
+
+  const chapters = Object.entries(window.appData.chapters || {});
+  if (chapters.length === 0) {
+    target.innerHTML = `<div style="opacity:0.5; padding:10px; font-size:0.9rem;">No data found. Configure your chapters list.</div>`;
+    return;
+  }
+
+  // Filter out chapters marked as 'weak' or 'average' to prioritize your backlog
+  const backlogList = chapters
+    .filter(([name, data]) => data.status === "weak" || data.status === "average")
+    .sort((a, b) => {
+      // Prioritize High Yield chapters at the top of the backlog queue
+      const pA = a[1].priority === "high" ? 3 : a[1].priority === "medium" ? 2 : 1;
+      const pB = b[1].priority === "high" ? 3 : b[1].priority === "medium" ? 2 : 1;
+      return pB - pA;
+    })
+    .slice(0, 5); // Display top 5 urgent backlogs
+
+  if (backlogList.length === 0) {
+    target.innerHTML = `<div style="color:var(--mastered); font-weight:bold; padding:10px; font-size:0.9rem;">🏆 Zero Backlogs! Everything is in strong shape!</div>`;
+    return;
+  }
+
+  let html = "";
+  backlogList.forEach(([name, data]) => {
+    const isHigh = data.priority === "high";
+    const statusLabel = data.status === "weak" ? "❌ Weak" : "⚡ Average";
+    html += `
+      <div class="danger-item" style="border-left: 4px solid ${data.status === 'weak' ? 'var(--weak)' : 'var(--average)'}; margin-bottom: 8px; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="color:#fff; font-size:0.9rem;">${name}</strong>
+          <span style="font-size:0.75rem; opacity:0.8;">${statusLabel}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-top:4px; opacity:0.6;">
+          <span>${data.subject}</span>
+          <span>${isHigh ? '🔥 High Yield' : '⚡ Med Yield'}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  target.innerHTML = html;
+}
+
+function renderMasterDirectory() {
+  const statsBox = document.getElementById("directory-recency-stats");
+  const listBox = document.getElementById("master-directory-scroll-list");
+  
+  const chapters = Object.values(window.appData.chapters || {});
+  if (chapters.length === 0) {
+    if (statsBox) statsBox.innerText = "No metrics configuration tracked.";
+    return;
+  }
+
+  // Calculate quick metrics for Memory Decay block
+  const total = chapters.length;
+  const masteredCount = chapters.filter(c => c.status === "mastered" || c.status === "strong").length;
+  const healthPercent = Math.round((masteredCount / total) * 100);
+
+  if (statsBox) {
+    statsBox.innerHTML = `
+      🎯 Retained Units: <strong>${masteredCount} / ${total}</strong> (${healthPercent}% Core Retention)<br>
+      ⚠️ Active Decay Warning: <strong>${total - masteredCount}</strong> items require drilling reviews soon.
+    `;
+  }
+
+  if (!listBox) return;
+  listBox.innerHTML = "";
+
+  // Sort layout items: display weak entries at top so you face them first
+  const sortedChapters = Object.entries(window.appData.chapters || {})
+    .sort((a, b) => {
+      const order = { weak: 1, average: 2, strong: 3, mastered: 4 };
+      return (order[a[1].status] || 1) - (order[b[1].status] || 1);
+    });
+
+  let html = "";
+  sortedChapters.forEach(([name, data]) => {
+    let color = "var(--weak)";
+    if (data.status === "average") color = "var(--average)";
+    if (data.status === "strong") color = "var(--strong)";
+    if (data.status === "mastered") color = "var(--mastered)";
+
+    html += `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); padding:10px 14px; border-radius:12px; margin-bottom:8px; border-right: 4px solid ${color};">
+        <div>
+          <div style="font-size:0.9rem; font-weight:bold; color:#fff;">${name}</div>
+          <div style="font-size:0.72rem; opacity:0.5; margin-top:2px;">${data.subject} • ${data.pyq || 0} PYQs</div>
+        </div>
+        <span style="font-size:0.75rem; color:${color}; font-weight:bold; text-transform:uppercase;">${data.status}</span>
+      </div>
+    `;
+  });
+
+  listBox.innerHTML = html;
+}
+
+// Map them back to the shared window routing path namespace so app.js can call them
+window.renderBacklogRevision = renderBacklogRevision;
+window.renderMasterDirectory = renderMasterDirectory;
 window.initializeSyllabus = initializeSyllabus;
 window.getSubjectProgress = getSubjectProgress;
 window.renderSubjectProgress = renderSubjectProgress;
