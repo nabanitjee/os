@@ -44,8 +44,8 @@ function loadData() {
         window.appData.futureNotes = parsed.futureNotes || [];
         window.appData.streak = parsed.streak !== undefined ? parsed.streak : 0;
         window.appData.lastActivityDate = parsed.lastActivityDate || "";
-        window.appData.activeMissionsList = parsed.activeMissionsList || []; // 👈 Synchronize active backlog row profiles
-        window.appData.completedMissionsLog = parsed.completedMissionsLog || []; // 👈 Synchronize past timeline archives entries
+        window.appData.activeMissionsList = parsed.activeMissionsList || []; // 👈 Synchronizes active backlog profiles securely
+        window.appData.completedMissionsLog = parsed.completedMissionsLog || []; // 👈 Synchronizes past timeline archives securely
         window.appData.currentTheme = parsed.currentTheme || "theme-blue";
         window.appData.lastActiveTab = parsed.lastActiveTab || "dashboard-page";
 
@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStatusCounts();
   renderPrepIndex();
   renderStreak();
-  
+
   if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); 
   if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); // 👈 Initial render anchor hook mount
   applyWidgetVisibilityLayouts();
