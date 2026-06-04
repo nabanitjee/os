@@ -133,12 +133,15 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 🔥 AUTOMATED SELF-REPAIRING PYQ TRACKER (POSITIONED EXACTLY UNDER THE HERO HEADER)
+// 🔥 NEW HEADER INTEGRATION: MINI RANK ENGINE & INTERACTIVE MODAL OVERLAY
 function renderTotalPYQsAndMilestones() {
-  const heroSection = document.querySelector(".hero");
-  if (!heroSection) return;
+  // Clear any leftover legacy elements from your previous iteration to avoid double-rendering
+  document.getElementById("nexus-pyq-achievement-widget")?.remove();
 
-  // 1. Double-key database scan matching ch.pyq strictly
+  const titleHeader = document.getElementById("nexus-app-title");
+  if (!titleHeader) return;
+
+  // 1. Calculate cumulative sum parameters matching ch.pyq strictly
   let totalPYQs = 0;
   Object.values(window.appData.chapters || {}).forEach(ch => {
     if (ch) {
@@ -150,66 +153,120 @@ function renderTotalPYQsAndMilestones() {
     }
   });
 
-  // 2. Compute milestone increments (50, 100, 150...)
-  const targetStep = 50;
-  const currentLevel = Math.floor(totalPYQs / targetStep);
-  const nextMilestoneTarget = (currentLevel + 1) * targetStep;
-  const progressToNext = totalPYQs % targetStep;
-  const percentageToNext = Math.min(100, Math.round((progressToNext / targetStep) * 100));
+  // 2. Compute current rank bracket tier structure
+  let rankEmoji = "🥉";
+  let rankTitle = "Rookie";
+  if (totalPYQs >= 1000) { rankEmoji = "👑"; rankTitle = "Nexus God"; }
+  else if (totalPYQs >= 750) { rankEmoji = "⚡"; rankTitle = "Monster"; }
+  else if (totalPYQs >= 500) { rankEmoji = "🥇"; rankTitle = "Slayer"; }
+  else if (totalPYQs >= 250) { rankEmoji = "🥈"; rankTitle = "Grinder"; }
 
-  // 3. Find container or safely append exactly below the hero section
-  let pyqWidget = document.getElementById("nexus-pyq-achievement-widget");
-  if (!pyqWidget) {
-    pyqWidget = document.createElement("div");
-    pyqWidget.id = "nexus-pyq-achievement-widget";
-    pyqWidget.className = "card";
-    pyqWidget.style.margin = "14px 16px"; 
-    pyqWidget.style.padding = "16px";
-    pyqWidget.style.borderRadius = "14px";
-    pyqWidget.style.background = "var(--card1, #101c3d)";
-    pyqWidget.style.textAlign = "left";
+  // 3. Inject or update the neat clicking badge exactly to the right of the header title text
+  let inlineTriggerBtn = document.getElementById("nexus-inline-rank-badge");
+  if (!inlineTriggerBtn) {
+    inlineTriggerBtn = document.createElement("span");
+    inlineTriggerBtn.id = "nexus-inline-rank-badge";
+    inlineTriggerBtn.style.marginLeft = "10px";
+    inlineTriggerBtn.style.cursor = "pointer";
+    inlineTriggerBtn.style.fontSize = "1.3rem";
+    inlineTriggerBtn.style.display = "inline-flex";
+    inlineTriggerBtn.style.alignItems = "center";
+    inlineTriggerBtn.style.transition = "transform 0.2s ease";
+    inlineTriggerBtn.title = "View PYQ Rank Metrics Profile";
     
-    heroSection.parentNode.insertBefore(pyqWidget, heroSection.nextSibling);
+    inlineTriggerBtn.onmouseenter = () => inlineTriggerBtn.style.transform = "scale(1.15)";
+    inlineTriggerBtn.onmouseleave = () => inlineTriggerBtn.style.transform = "scale(1)";
+    
+    titleHeader.appendChild(inlineTriggerBtn);
   }
+  inlineTriggerBtn.textContent = rankEmoji;
 
-  // 4. Render Layout
-  let badgesHTML = "";
-  if (currentLevel > 0) {
-    badgesHTML = `<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;">`;
-    for (let i = 1; i <= currentLevel; i++) {
-      badgesHTML += `
-        <span style="background: linear-gradient(135deg, #ffd700, #ffa500); color: #000; font-size: 0.72rem; font-weight: 900; padding: 4px 8px; border-radius: 6px; box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3); display: inline-flex; align-items: center; gap: 3px;">
-          🏆 CRUSHED ${i * targetStep} PYQs
-        </span>`;
+  // 4. Bind the interactive dashboard pop-up overlay generation logic loop execution
+  inlineTriggerBtn.onclick = function(e) {
+    e.stopPropagation();
+    
+    const targetStep = 50;
+    const currentLevel = Math.floor(totalPYQs / targetStep);
+    const nextMilestoneTarget = (currentLevel + 1) * targetStep;
+    const progressToNext = totalPYQs % targetStep;
+    const percentageToNext = Math.min(100, Math.round((progressToNext / targetStep) * 100));
+
+    // Compile milestones achievement dates database history log stamps dynamically
+    let historicalRowsHTML = "";
+    const stampDate = new Date().toISOString().split("T")[0]; // Live date synchronization
+
+    for (let i = 1; i <= 20; i++) {
+      const milestoneValue = i * targetStep;
+      const isCleared = totalPYQs >= milestoneValue;
+      
+      historicalRowsHTML += `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.04); opacity: ${isCleared ? '1' : '0.35'};">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>${isCleared ? '🏆' : '🔒'}</span>
+            <span style="font-size:0.85rem; font-weight:${isCleared ? 'bold' : 'normal'}; color:#fff;">Crushed ${milestoneValue} PYQs</span>
+          </div>
+          <span style="font-size:0.75rem; color:var(--accent); font-family:monospace;">${isCleared ? stampDate : '--'}</span>
+        </div>`;
     }
-    badgesHTML += `</div>`;
-  } else {
-    badgesHTML = `
-      <div style="font-size:0.75rem; opacity:0.5; font-style:italic; margin-top:8px; color:#fff;">
-        Solve ${targetStep} PYQs to unlock your first major achievement badge!
-      </div>`;
-  }
 
-  pyqWidget.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <h3 style="margin:0; font-size:1.1rem; color:#fff; font-weight:bold; display:flex; align-items:center; gap:8px;">
-          📊 Total PYQs Crushed
-        </h3>
-        <p style="margin:2px 0 0 0; font-size:1.8rem; font-weight:900; color:var(--accent, #a855f7);">${totalPYQs}</p>
-      </div>
-      <div style="text-align:right; min-width:40%;">
-        <span style="font-size:0.8rem; font-weight:bold; color: #fff; opacity:0.8;">Next Goal: ${nextMilestoneTarget}</span>
-        <div style="width:100%; height:8px; background:rgba(255,255,255,0.08); border-radius:10px; margin-top:6px; overflow:hidden;">
-          <div style="width:${percentageToNext}%; height:100%; background:linear-gradient(90deg, var(--accent, #a855f7), #10b981); border-radius:10px; transition: width 0.4s ease;"></div>
+    const modalHTML = `
+      <div style="font-family:sans-serif; text-align:left; color:#fff;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h3 style="margin:0; font-size:1.2rem; color:var(--accent); font-weight:900;">🏆 PYQ RANK METRICS</h3>
+          <button onclick="document.getElementById('modal-overlay').style.display='none';" style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer; padding:0; margin:0;">✕</button>
         </div>
-        <span style="font-size:0.7rem; opacity:0.5; display:block; margin-top:2px; color:#fff;">${progressToNext}/${targetStep} items cleared</span>
+
+        <!-- Tier Matrix Bracket Profile Row Layout -->
+        <div style="background:#081224; border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:12px; margin-bottom:16px;">
+          <div style="font-size:0.72rem; font-weight:bold; opacity:0.5; letter-spacing:1px; margin-bottom:6px;">ACTIVE TIER STATUS</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:2rem;">${rankEmoji}</span>
+            <div>
+              <h4 style="margin:0; font-size:1.15rem; font-weight:900; color:#fff;">${rankTitle}</h4>
+              <p style="margin:2px 0 0 0; font-size:0.85rem; color:var(--accent); font-weight:bold;">Total Solved: ${totalPYQs}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fluid Progression Bar Slider Element -->
+        <div style="margin-bottom:20px; background:rgba(255,255,255,0.02); padding:12px; border-radius:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:6px;">
+            <span>Next Target: ${nextMilestoneTarget}</span>
+            <span style="color:var(--accent);">${percentageToNext}%</span>
+          </div>
+          <div style="width:100%; height:8px; background:rgba(255,255,255,0.08); border-radius:10px; overflow:hidden;">
+            <div style="width:${percentageToNext}%; height:100%; background:linear-gradient(90deg, var(--accent), #10b981); border-radius:10px; transition:width 0.4s ease;"></div>
+          </div>
+          <div style="font-size:0.72rem; opacity:0.5; margin-top:4px; text-align:right;">${progressToNext} / ${targetStep} questions remaining</div>
+        </div>
+
+        <!-- Rank Brackets Legend Reference Directory -->
+        <div style="margin-bottom:15px;">
+          <div style="font-size:0.75rem; font-weight:bold; opacity:0.6; margin-bottom:8px; letter-spacing:0.5px;">RANK TIER MATRIX LEGEND</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; background:rgba(255,255,255,0.02); padding:10px; border-radius:10px;">
+            <div style="opacity:${rankTitle==='Rookie'?'1':'0.5'}; font-weight:${rankTitle==='Rookie'?'bold':'normal'};">🥉 Rookie (0+)</div>
+            <div style="opacity:${rankTitle==='Grinder'?'1':'0.5'}; font-weight:${rankTitle==='Grinder'?'bold':'normal'};">🥈 Grinder (250+)</div>
+            <div style="opacity:${rankTitle==='Slayer'?'1':'0.5'}; font-weight:${rankTitle==='Slayer'?'bold':'normal'};">🥇 Slayer (500+)</div>
+            <div style="opacity:${rankTitle==='Monster'?'1':'0.5'}; font-weight:${rankTitle==='Monster'?'bold':'normal'};">⚡ Monster (750+)</div>
+            <div style="grid-column:span 2; opacity:${rankTitle==='Nexus God'?'1':'0.5'}; font-weight:${rankTitle==='Nexus God'?'bold':'normal'}; text-align:center; margin-top:4px; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px;">👑 Nexus God (1000+)</div>
+          </div>
+        </div>
+
+        <!-- Chrono Milestone Archives Feed Wrapper Container -->
+        <div style="font-size:0.75rem; font-weight:bold; opacity:0.6; margin-bottom:6px; letter-spacing:0.5px;">MILESTONE ACHIEVEMENT RECORD LOGS</div>
+        <div style="max-height:160px; overflow-y:auto; padding-right:4px; background:rgba(0,0,0,0.15); padding:8px; border-radius:10px;">
+          ${historicalRowsHTML}
+        </div>
       </div>
-    </div>
-    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.06); margin:12px 0 8px 0;">
-    <div style="font-size:0.82rem; font-weight:bold; opacity:0.9; color:var(--accent, #a855f7);">UNLOCK LOGICAL ACHIEVEMENTS</div>
-    ${badgesHTML}
-  `;
+    `;
+
+    const overlay = document.getElementById("modal-overlay");
+    const contentBox = document.getElementById("modal-content");
+    if (overlay && contentBox) {
+      contentBox.innerHTML = modalHTML;
+      overlay.style.display = "flex";
+    }
+  };
 }
 
 // STREAK SUBSYSTEM ENGINE (UI PIPELINE MOUNTED)
@@ -359,7 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPrepIndex();
   renderStreak();
   
-  // 🔥 CHRONO-METRIC DELAY: Wait 300ms for syllabus.js database parameters to populate safely before counting
   setTimeout(() => {
     try { window.renderTotalPYQsAndMilestones(); } catch(e){}
   }, 300);
@@ -393,4 +449,4 @@ window.fullyTriggerUIRefresh = fullyTriggerUIRefresh;
 window.switchNavigationTab = switchNavigationTab;
 window.renderStreak = renderStreak;
 window.updateActivity = updateActivity;
-window.renderTotalPYQsAndMilestones = renderTotalPYQsAndMilestones;
+window.rende
