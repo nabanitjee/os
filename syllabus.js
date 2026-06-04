@@ -1,6 +1,6 @@
-// =========================
-// JEE MASTER SYLLABUS DATA
-// =========================
+// ==========================================================================
+// JEE MASTER SYLLABUS DATA & SYNCHRONIZATION ENGINE
+// ==========================================================================
 
 const FULL_SYLLABUS = {
   Physics: [
@@ -36,7 +36,7 @@ const FULL_SYLLABUS = {
   ]
 };
 
-// Map high-yield tracking constants & targets
+// High-Yield Target Arrays
 const ADVANCED_ONLY_CHAPTERS = [
   "Rotational Motion", "Thermal Expansion", "Calorimetry", "Waves",
   "Ionic Equilibrium", "Salt Analysis", "Electrochemistry",
@@ -61,21 +61,25 @@ function initializeSyllabus() {
   if (!window.appData) window.appData = { chapters: {} };
   if (!window.appData.chapters) window.appData.chapters = {};
 
-  // If data already exists, update properties safely without overwriting user scores
   const existingKeys = Object.keys(window.appData.chapters);
   
   if (existingKeys.length > 0) {
+    // FIXED: Only inject baseline flags, NEVER Touch or reset the 'status' property!
     Object.entries(window.appData.chapters).forEach(([chapterName, data]) => {
-      data.isAdvancedOnly = ADVANCED_ONLY_CHAPTERS.includes(chapterName);
-      if (HIGH_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "high";
-      else if (LOW_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "low";
-      else data.priority = "medium";
+      if (data) {
+        data.isAdvancedOnly = ADVANCED_ONLY_CHAPTERS.includes(chapterName);
+        if (!data.status) data.status = "weak"; // Safe fallback only if completely empty
+        
+        if (HIGH_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "high";
+        else if (LOW_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "low";
+        else data.priority = "medium";
+      }
     });
-    saveData();
+    if (typeof window.saveData === "function") window.saveData();
     return;
   }
 
-  // Fresh setup initialization mapping loop
+  // Fresh initialization mapping loop
   Object.entries(FULL_SYLLABUS).forEach(([subject, chapters]) => {
     chapters.forEach(chapter => {
       let prioritySetting = "medium";
@@ -91,14 +95,15 @@ function initializeSyllabus() {
         revision3: false,
         priority: prioritySetting,
         notes: "",
-        lastRevised: null,
+        lastRevised: Date.now(),
         custom: false,
         isAdvancedOnly: ADVANCED_ONLY_CHAPTERS.includes(chapter)
       };
     });
   });
 
-  saveData();
+  if (typeof window.saveData === "function") window.saveData();
+  
   if (typeof renderStatusCounts === "function") {
     renderStatusCounts();
     renderPrepIndex();
@@ -118,6 +123,7 @@ function getSubjectProgress(subject) {
       case "average": statusScore = 50; break;
       case "strong": statusScore = 75; break;
       case "mastered": statusScore = 100; break;
+      default: statusScore = 25;
     }
     totalScore += statusScore;
   });
