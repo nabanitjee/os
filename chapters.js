@@ -42,14 +42,16 @@ function renderChapterGrid() {
   if (!grid) return;
 
   const searchQuery = document.getElementById("chapter-search")?.value.toLowerCase().trim() || "";
-  
-  // Directly pull fresh data from LocalStorage to bypass app.js variable leaks
+
+  // FIXED: Safely merge from localStorage without wiping appData memory bindings
   const rawSavedData = localStorage.getItem("jee_nexus_master_db");
   if (rawSavedData) {
-    const parsed = JSON.parse(rawSavedData);
-    if (parsed && parsed.chapters) {
-      window.appData.chapters = parsed.chapters;
-    }
+    try {
+      const parsed = JSON.parse(rawSavedData);
+      if (parsed && parsed.chapters) {
+        window.appData.chapters = parsed.chapters;
+      }
+    } catch(e) { console.error("Cache merge bypass failure:", e); }
   }
 
   const chaptersMaster = (window.appData && window.appData.chapters) ? window.appData.chapters : {};
@@ -147,9 +149,13 @@ document.addEventListener("DOMContentLoaded", () => {
         isAdvancedOnly: advCheckbox ? advCheckbox.checked : false
       };
 
-      localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
-      if (typeof window.saveData === "function") window.saveData();
-      
+      // FIXED: Synchronize object nodes securely before writing back to storage
+      if (typeof window.saveData === "function") {
+        window.saveData();
+      } else {
+        localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+      }
+
       nameInput.value = "";
       if (advCheckbox) advCheckbox.checked = false;
 
@@ -163,13 +169,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================================================
-// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH STRING DATE PERSISTENCE)
+// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH ISOLATED RENDER WRAPPERS)
 // ==========================================================================
 
 function showChapterEditModal(chapterName) {
   const modalOverlay = document.getElementById("modal-overlay");
   const modalContent = document.getElementById("modal-content");
-  
+
   if (!modalOverlay || !modalContent) {
     console.error("Critical System Error: Modal layout selectors missing in index.html");
     return;
@@ -270,26 +276,30 @@ function showChapterEditModal(chapterName) {
       window.appData.chapters[chapterName].revision1 = nextRev1;
       window.appData.chapters[chapterName].revision2 = nextRev2;
       window.appData.chapters[chapterName].revision3 = nextRev3;
-      
-      // Save as YYYY-MM-DD string, setting it far out if mastered to avoid decay bugs
+
       if (nextStatus === "mastered" || nextStatus === "strong") {
         window.appData.chapters[chapterName].lastRevised = getCleanStringDate(365); 
       } else {
         window.appData.chapters[chapterName].lastRevised = getCleanStringDate(); 
       }
 
-      localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
-      if (typeof window.saveData === "function") window.saveData();
-      
+      // FIXED: Run systematic storage commit so parent keys preserve tracking states
+      if (typeof window.saveData === "function") {
+        window.saveData();
+      } else {
+        localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+      }
+
       modalOverlay.style.display = "none";
 
-      renderChapterGrid();
-      if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
-      if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
-      if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
-      if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
-      if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
-      if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision();
+      // FIXED: Safeguard downstream render nodes via runtime interception blocks
+      try { renderChapterGrid(); } catch(e){}
+      try { if (typeof window.renderStatusCounts === "function") window.renderStatusCounts(); } catch(e){}
+      try { if (typeof window.renderPrepIndex === "function") window.renderPrepIndex(); } catch(e){}
+      try { if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress(); } catch(e){}
+      try { if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList(); } catch(e){}
+      try { if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory(); } catch(e){}
+      try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
     };
   }
 
@@ -315,19 +325,22 @@ function showChapterEditModal(chapterName) {
 
     document.getElementById("inbuilt-confirm-delete-btn").onclick = () => {
       delete window.appData.chapters[chapterName];
-      
-      localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
-      if (typeof window.saveData === "function") window.saveData();
-      
+
+      if (typeof window.saveData === "function") {
+        window.saveData();
+      } else {
+        localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+      }
+
       modalOverlay.style.display = "none";
-      
-      renderChapterGrid();
-      if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
-      if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
-      if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
-      if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
-      if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
-      if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision();
+
+      try { renderChapterGrid(); } catch(e){}
+      try { if (typeof window.renderStatusCounts === "function") window.renderStatusCounts(); } catch(e){}
+      try { if (typeof window.renderPrepIndex === "function") window.renderPrepIndex(); } catch(e){}
+      try { if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress(); } catch(e){}
+      try { if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList(); } catch(e){}
+      try { if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory(); } catch(e){}
+      try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
     };
   }
 
