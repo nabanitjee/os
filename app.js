@@ -10,8 +10,9 @@ window.appData = {
   mocks: [],
   clat: [],
   futureNotes: [],
-  streak: 0,                   // 👈 Added schema baseline tracker
-  lastActivityDate: "",        // 👈 Added verification timestamp node
+  streak: 0,
+  lastActivityDate: "",
+  activeMission: "",           // 👈 Added schema baseline tracker
   widgetVisibility: {
     mission: true,
     future: true,
@@ -42,6 +43,7 @@ function loadData() {
         window.appData.futureNotes = parsed.futureNotes || [];
         window.appData.streak = parsed.streak !== undefined ? parsed.streak : 0;
         window.appData.lastActivityDate = parsed.lastActivityDate || "";
+        window.appData.activeMission = parsed.activeMission || ""; // 👈 Restores mission from storage
         window.appData.currentTheme = parsed.currentTheme || "theme-blue";
         window.appData.lastActiveTab = parsed.lastActiveTab || "dashboard-page";
 
@@ -94,7 +96,7 @@ function renderStatusCounts() {
     average: document.getElementById("average-count"),
     strong: document.getElementById("strong-count"),
     mastered: document.getElementById("mastered-count")
-};
+  };
 
   const counts = { weak: 0, average: 0, strong: 0, mastered: 0 };
   Object.values(window.appData.chapters || {}).forEach(ch => {
@@ -136,11 +138,10 @@ function renderStreak() {
 
 function updateActivity() {
   if (!window.appData) return;
-  
+
   const todayStr = new Date().toISOString().split("T")[0];
   if (window.appData.streak === undefined) window.appData.streak = 0;
 
-  // If work was already done today, bypass computation loop
   if (window.appData.lastActivityDate === todayStr) {
     renderStreak();
     return;
@@ -149,21 +150,20 @@ function updateActivity() {
   if (window.appData.lastActivityDate) {
     const lastDate = new Date(window.appData.lastActivityDate);
     const todayDate = new Date(todayStr);
-    
-    // Clear time factors for precise day differences calculation
+
     lastDate.setHours(0,0,0,0);
     todayDate.setHours(0,0,0,0);
-    
+
     const diffTime = Math.abs(todayDate - lastDate);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) {
-      window.appData.streak++; // Consecutive day: increment chain
+      window.appData.streak++; 
     } else if (diffDays > 1) {
-      window.appData.streak = 1; // Gap detected: chain broken, reset to 1
+      window.appData.streak = 1; 
     }
   } else {
-    window.appData.streak = 1; // Fresh initialization setup
+    window.appData.streak = 1; 
   }
 
   window.appData.lastActivityDate = todayStr;
@@ -231,7 +231,6 @@ function switchNavigationTab(targetPageId) {
   window.appData.lastActiveTab = targetPageId;
   saveData();
 
-  // Route specific triggers safely with fallback protection loops
   try {
     if (targetPageId === "chapters-page" && typeof window.renderChapterGrid === "function") window.renderChapterGrid();
     if (targetPageId === "revision-directory-page" && typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
@@ -251,6 +250,7 @@ function fullyTriggerUIRefresh() {
   try { if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory(); } catch(e){}
   try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
   try { if (typeof window.renderSyllabusDistributionBalance === "function") window.renderSyllabusDistributionBalance(); } catch(e){}
+  try { if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); } catch(e){} // 👈 Refresh mission display parameters
   try { renderStreak(); } catch(e){}
 }
 
@@ -270,16 +270,15 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCountdowns();
   renderStatusCounts();
   renderPrepIndex();
-  renderStreak(); // 👈 Fixed: Populates data onto your streak card instantly on layout launch
+  renderStreak();
+  if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); // 👈 Initial setup loop target initialization hook
   applyWidgetVisibilityLayouts();
 
-  // Restore page view history
   switchNavigationTab(window.appData.lastActiveTab || "dashboard-page");
 
   setTimeout(fullyTriggerUIRefresh, 150);
   setInterval(updateCountdowns, 60000);
 
-  // Bind Bottom Nav Bar click elements safely
   document.querySelectorAll(".bottom-nav button").forEach(button => {
     button.addEventListener("click", () => {
       const targetPageId = button.getAttribute("data-page");
