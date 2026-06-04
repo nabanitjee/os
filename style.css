@@ -569,3 +569,8 @@ body.theme-crimson #add-custom-chapter-btn { background: linear-gradient(135deg,
   color: #fff !important; 
   box-shadow: 0 4px 12px rgba(0, 242, 254, 0.35);
 }
+/* Dynamic visibility toggle handling class */
+.widget-hidden {
+  display: none !important;
+}
+
