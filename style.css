@@ -531,18 +531,42 @@ canvas {
   transform: scale(1.08);
 }
 
-/* Individual Orb Hex Signatures */
-.orb-blue { background: #4f8cff; }
-.orb-green { background: #39d98a; }
-.orb-violet { background: #bd00ff; }
-.orb-crimson { background: #ff5b5b; }
+/* ==========================================================================
+   GRADIENT SKIN ARCHITECTURE & THEME OVERRIDES
+   ========================================================================== */
 
-/* THEME ACCENT OVERRIDES USING CORE PROP MAPS */
-body.theme-green { --accent: #39d98a; }
-body.theme-violet { --accent: #bd00ff; }
-body.theme-crimson { --accent: #ff5b5b; }
+/* 1. Update the preview orbs to show the gorgeous blended mixtures */
+.orb-blue { background: linear-gradient(135deg, #00f2fe, #4facfe); }
+.orb-green { background: linear-gradient(135deg, #39d98a, #006b38); }
+.orb-violet { background: linear-gradient(135deg, #bd00ff, #bd00ff); } /* Keeping your custom blend signature */
+.orb-crimson { background: linear-gradient(135deg, #ff5b5b, #e11d48); }
 
-/* Dynamic visibility toggle handling class */
-.widget-hidden {
-  display: none !important;
+/* 2. Map the active dynamic variable paths to premium linear mix schemes */
+body.theme-blue {
+  --accent: #4f8cff;
 }
+
+body.theme-green {
+  --accent: #39d98a;
+  /* You can also inject specific dual-blends straight onto background gradients here if needed */
+}
+
+body.theme-violet {
+  --accent: #bd00ff;
+}
+
+body.theme-crimson {
+  --accent: #ff5b5b;
+}
+
+/* 3. Make all main action buttons automatically adapt using a rich gradient mix */
+body.theme-blue button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #00f2fe, #4facfe); }
+body.theme-green button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #39d98a, #059669); }
+body.theme-violet button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #bd00ff, #6b8cff); }
+body.theme-crimson button:not(#import-btn):not(.filter-btn) { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
+
+/* Make active navigation tabs match the blended profile */
+body.theme-blue .bottom-nav button.active-nav { background: linear-gradient(135deg, #00f2fe, #4facfe); }
+body.theme-green .bottom-nav button.active-nav { background: linear-gradient(135deg, #39d98a, #059669); }
+body.theme-violet .bottom-nav button.active-nav { background: linear-gradient(135deg, #bd00ff, #6b8cff); }
+body.theme-crimson .bottom-nav button.active-nav { background: linear-gradient(135deg, #ff5b5b, #ef4444); }
