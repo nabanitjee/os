@@ -1,6 +1,6 @@
-// =========================
-// CLAT TRACKER SYSTEM V4
-// =========================
+// ==========================================================================
+// CLAT TRACKER SYSTEM V4 (WITH INSTANT DASHBOARD RE-RENDERING)
+// ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("add-clat-btn")?.addEventListener("click", () => showClatForm());
@@ -16,8 +16,12 @@ function showClatForm(entryId = null) {
   const isEdit = entryId !== null;
   let entry = { english: "", legal: "", gk: "", logical: "", qt: "" };
 
+  // Strict structural scope checking
+  if (!window.appData) window.appData = { clat: [] };
+  if (!window.appData.clat) window.appData.clat = [];
+
   if (isEdit) {
-    const found = appData.clat.find(e => e.id === Number(entryId));
+    const found = window.appData.clat.find(e => e.id === Number(entryId));
     if (found) entry = found;
   }
 
@@ -54,16 +58,28 @@ function showClatForm(entryId = null) {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0;">Cancel</button>
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0;">Cancel</button>
         <button onclick="processClatSubmit(${isEdit ? entry.id : null})" style="background:var(--accent); margin:0; font-weight:bold;">Save Log</button>
       </div>
     </div>
   `;
-  
-  if (typeof showModal === "function") showModal(formHTML);
+
+  if (typeof showModal === "function") {
+    showModal(formHTML);
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    const content = document.getElementById("modal-content");
+    if (overlay && content) {
+      content.innerHTML = formHTML;
+      overlay.style.display = "flex";
+    }
+  }
 }
 
 function processClatSubmit(existingId = null) {
+  if (!window.appData) window.appData = { clat: [] };
+  if (!window.appData.clat) window.appData.clat = [];
+
   const eng = parseFloat(document.getElementById("c-english").value) || 0;
   const leg = parseFloat(document.getElementById("c-legal").value) || 0;
   const gk = parseFloat(document.getElementById("c-gk").value) || 0;
@@ -71,31 +87,61 @@ function processClatSubmit(existingId = null) {
   const qt = parseFloat(document.getElementById("c-qt").value) || 0;
   const calcTotal = eng + leg + gk + log + qt;
 
-  if (calcTotal === 0) { hideModal(); return; }
+  if (calcTotal === 0) {
+    if (typeof hideModal === "function") hideModal();
+    else document.getElementById("modal-overlay").style.display = "none";
+    return;
+  }
 
   if (existingId) {
-    const item = appData.clat.find(e => e.id === existingId);
+    const item = window.appData.clat.find(e => e.id === existingId);
     if (item) {
       item.english = eng; item.legal = leg; item.gk = gk;
       item.logical = log; item.qt = qt; item.total = calcTotal;
     }
   } else {
-    appData.clat.push({
+    window.appData.clat.push({
       id: Date.now(), date: new Date().toISOString().split("T")[0],
       english: eng, legal: leg, gk: gk, logical: log, qt: qt, total: calcTotal
     });
     if (typeof updateActivity === "function") updateActivity();
   }
 
-  saveData();
-  hideModal();
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
+  if (typeof hideModal === "function") {
+    hideModal();
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    if (overlay) overlay.style.display = "none";
+  }
+
   refreshClatUI();
+
+  // CRITICAL HOT RE-RENDER: Force immediate update on home layout elements
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function deleteClat(id) {
-  appData.clat = appData.clat.filter(entry => entry.id !== id);
-  saveData();
+  window.appData.clat = window.appData.clat.filter(entry => entry.id !== id);
+  
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
   refreshClatUI();
+
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function editClat(id) { showClatForm(id); }
@@ -104,14 +150,16 @@ function getWeeklyClatHours() {
   const today = new Date();
   const weekAgo = new Date();
   weekAgo.setDate(today.getDate() - 7);
-  return appData.clat
+  const baseList = (window.appData && window.appData.clat) ? window.appData.clat : [];
+  return baseList
     .filter(entry => new Date(entry.date) >= weekAgo)
     .reduce((sum, entry) => sum + entry.total, 0);
 }
 
 function getMonthlyClatHours() {
   const today = new Date();
-  return appData.clat
+  const baseList = (window.appData && window.appData.clat) ? window.appData.clat : [];
+  return baseList
     .filter(entry => {
       const d = new Date(entry.date);
       return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
@@ -120,8 +168,9 @@ function getMonthlyClatHours() {
 }
 
 function getBestClatDay() {
-  if (!appData.clat || appData.clat.length === 0) return null;
-  return appData.clat.reduce((best, current) => current.total > best.total ? current : best);
+  const baseList = (window.appData && window.appData.clat) ? window.appData.clat : [];
+  if (baseList.length === 0) return null;
+  return baseList.reduce((best, current) => current.total > best.total ? current : best);
 }
 
 function renderWeeklyClat() {
@@ -150,7 +199,8 @@ function renderClat() {
   if (!container) return;
 
   let html = "";
-  const sorted = [...appData.clat].sort((a, b) => b.id - a.id);
+  const baseList = (window.appData && window.appData.clat) ? window.appData.clat : [];
+  const sorted = [...baseList].sort((a, b) => b.id - a.id);
 
   sorted.forEach(entry => {
     html += `
@@ -172,8 +222,12 @@ function renderClat() {
     `;
   });
 
-  container.innerHTML = html || `<div class="card">No CLAT Entries Yet</div>`;
+  container.innerHTML = html || `<div class="card" style="opacity:0.5; text-align:center; padding:20px;">No CLAT Entries Yet</div>`;
 }
+
+// Global configuration fallbacks
+window.showAddClatModal = showClatForm;
 
 window.editClat = editClat;
 window.deleteClat = deleteClat;
+window.renderClat = renderClat;
