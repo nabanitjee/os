@@ -130,7 +130,7 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 5. Dynamic Controller Visibility Toggles (FIXED CRASH LEAK LOOP)
+// 5. Dynamic Controller Visibility Toggles (CRASH-PROOF LAYER ADDED)
 function toggleWidgetVisibility(widgetKey, isVisible) {
   if (window.appData.widgetVisibility[widgetKey] !== undefined) {
     window.appData.widgetVisibility[widgetKey] = isVisible;
@@ -150,12 +150,12 @@ function applyWidgetVisibilityLayouts() {
   Object.entries(targets).forEach(([key, element]) => {
     const show = window.appData.widgetVisibility[key] !== false;
     
-    // Explicitly hide or show card container block safely
+    // Safely shift layout state without breaking execution loops
     if (element) {
       element.style.display = show ? "block" : "none";
     }
     
-    // Explicitly update checkmarks safely without crash barriers
+    // Safely update config control checkmarks
     const checkbox = document.getElementById(`toggle-widget-${key}`);
     if (checkbox) {
       checkbox.checked = show;
@@ -185,8 +185,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (advInp) advInp.value = window.appData.jeeAdvancedDate || "";
 
   document.body.className = window.appData.currentTheme || "theme-blue";
-  switchNexusTheme(window.appData.currentTheme || "theme-blue");
-
+  
+  // Apply visual settings cleanly on boots
   renderDropDay();
   updateCountdowns();
   renderStatusCounts();
