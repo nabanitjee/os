@@ -60,14 +60,15 @@ function initializeSyllabus() {
   if (!window.appData) window.appData = { chapters: {} };
   if (!window.appData.chapters) window.appData.chapters = {};
 
+  // Safely check if database is already populated from app.js loadData()
   const existingKeys = Object.keys(window.appData.chapters);
-  
+
   if (existingKeys.length > 0) {
     Object.entries(window.appData.chapters).forEach(([chapterName, data]) => {
       if (data) {
         data.isAdvancedOnly = ADVANCED_ONLY_CHAPTERS.includes(chapterName);
         if (!data.status) data.status = "weak";
-        
+
         if (HIGH_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "high";
         else if (LOW_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "low";
         else data.priority = "medium";
@@ -76,6 +77,7 @@ function initializeSyllabus() {
     return;
   }
 
+  // Fallback initial core database seeding
   Object.entries(FULL_SYLLABUS).forEach(([subject, chapters]) => {
     chapters.forEach(chapter => {
       let prioritySetting = "medium";
@@ -152,7 +154,6 @@ function renderLowestPYQList() {
   });
 }
 
-// UPDATE: SUBJECT-WISE SYLLABUS DISTRIBUTION ANALYSIS ENGINE
 function renderSyllabusDistributionBalance() {
   const target = document.getElementById("settings-distribution-analyzer");
   if (!target) return;
@@ -163,7 +164,6 @@ function renderSyllabusDistributionBalance() {
     return;
   }
 
-  // Master tracking matrices counters
   const matrix = {
     high: { Physics: 0, Chemistry: 0, Mathematics: 0, total: 0 },
     medium: { Physics: 0, Chemistry: 0, Mathematics: 0, total: 0 },
@@ -204,19 +204,21 @@ function getSubjectCounts() {
   return result;
 }
 
-// Loader Event Listener Loop
+// Loader event listener node
 document.addEventListener("DOMContentLoaded", () => {
-  initializeSyllabus();
-  
+  // Let app.js read state memory from localStorage before validating variables
   setTimeout(() => {
+    initializeSyllabus();
+    
     try { renderLowestPYQList(); } catch(e){}
     try { renderSubjectProgress(); } catch(e){}
     try { renderSyllabusDistributionBalance(); } catch(e){}
     
+    // Smoothly synchronize active views without execution freezes
     if (typeof window.fullyTriggerUIRefresh === "function") {
       window.fullyTriggerUIRefresh();
     }
-  }, 100);
+  }, 50);
 });
 
 window.initializeSyllabus = initializeSyllabus;
