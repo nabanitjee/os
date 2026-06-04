@@ -133,16 +133,14 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
-// 🔥 FIXED METRIC RE-ROUTE: TARGETS CENTRAL PYQ GRID CARD INSTEAD OF TOP TEXT EMOJIS
+// INTERACTIVE GRID PYQ CARD TRACKER 
 function renderTotalPYQsAndMilestones() {
-  // Clear any leftovers from top header nodes
   document.getElementById("nexus-inline-rank-badge")?.remove();
 
   const centralCardBtn = document.getElementById("nexus-pyq-card-button");
   const counterDisplay = document.getElementById("dashboard-pyq-counter-value");
   if (!centralCardBtn || !counterDisplay) return;
 
-  // 1. Double-key database scan matching ch.pyq strictly
   let totalPYQs = 0;
   Object.values(window.appData.chapters || {}).forEach(ch => {
     if (ch) {
@@ -154,7 +152,6 @@ function renderTotalPYQsAndMilestones() {
     }
   });
 
-  // 2. Compute dynamic rank bracket status
   let rankEmoji = "🥉";
   let rankTitle = "Rookie";
   if (totalPYQs >= 1000) { rankEmoji = "👑"; rankTitle = "Nexus God"; }
@@ -162,14 +159,11 @@ function renderTotalPYQsAndMilestones() {
   else if (totalPYQs >= 500) { rankEmoji = "🥇"; rankTitle = "Slayer"; }
   else if (totalPYQs >= 250) { rankEmoji = "🥈"; rankTitle = "Grinder"; }
 
-  // Update live dashboard card inner display properties
   counterDisplay.textContent = totalPYQs;
 
-  // Setup hover animations natively to mimic grid elements seamlessly
   centralCardBtn.onmouseenter = () => centralCardBtn.style.transform = "scale(1.03)";
   centralCardBtn.onmouseleave = () => centralCardBtn.style.transform = "scale(1)";
 
-  // 3. Bind popup generation directly to the central card button layout click trigger
   centralCardBtn.onclick = function(e) {
     e.stopPropagation();
     
