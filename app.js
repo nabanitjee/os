@@ -103,7 +103,7 @@ function updateCountdowns() {
 function renderDropDay() {
   const el = document.getElementById("drop-day");
   if (!el) return;
-  const start = new Date("2026-06-03");
+  const start = new Date("2026-06-05");
   const today = new Date();
   const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
   el.textContent = diff + 1;
