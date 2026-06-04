@@ -10,6 +10,8 @@ window.appData = {
   mocks: [],
   clat: [],
   futureNotes: [],
+  streak: 0,                   // 👈 Added schema baseline tracker
+  lastActivityDate: "",        // 👈 Added verification timestamp node
   widgetVisibility: {
     mission: true,
     future: true,
@@ -38,9 +40,11 @@ function loadData() {
         window.appData.mocks = parsed.mocks || [];
         window.appData.clat = parsed.clat || [];
         window.appData.futureNotes = parsed.futureNotes || [];
+        window.appData.streak = parsed.streak !== undefined ? parsed.streak : 0;
+        window.appData.lastActivityDate = parsed.lastActivityDate || "";
         window.appData.currentTheme = parsed.currentTheme || "theme-blue";
         window.appData.lastActiveTab = parsed.lastActiveTab || "dashboard-page";
-        
+
         if (parsed.widgetVisibility) {
           window.appData.widgetVisibility.mission = parsed.widgetVisibility.mission !== false;
           window.appData.widgetVisibility.future = parsed.widgetVisibility.future !== false;
@@ -90,7 +94,7 @@ function renderStatusCounts() {
     average: document.getElementById("average-count"),
     strong: document.getElementById("strong-count"),
     mastered: document.getElementById("mastered-count")
-  };
+};
 
   const counts = { weak: 0, average: 0, strong: 0, mastered: 0 };
   Object.values(window.appData.chapters || {}).forEach(ch => {
@@ -123,6 +127,50 @@ function renderPrepIndex() {
   text.textContent = percent + "%";
 }
 
+// STREAK SUBSYSTEM ENGINE (UI PIPELINE MOUNTED)
+function renderStreak() {
+  const el = document.getElementById("study-streak");
+  if (!el) return;
+  el.textContent = window.appData.streak !== undefined ? window.appData.streak : 0;
+}
+
+function updateActivity() {
+  if (!window.appData) return;
+  
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (window.appData.streak === undefined) window.appData.streak = 0;
+
+  // If work was already done today, bypass computation loop
+  if (window.appData.lastActivityDate === todayStr) {
+    renderStreak();
+    return;
+  }
+
+  if (window.appData.lastActivityDate) {
+    const lastDate = new Date(window.appData.lastActivityDate);
+    const todayDate = new Date(todayStr);
+    
+    // Clear time factors for precise day differences calculation
+    lastDate.setHours(0,0,0,0);
+    todayDate.setHours(0,0,0,0);
+    
+    const diffTime = Math.abs(todayDate - lastDate);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      window.appData.streak++; // Consecutive day: increment chain
+    } else if (diffDays > 1) {
+      window.appData.streak = 1; // Gap detected: chain broken, reset to 1
+    }
+  } else {
+    window.appData.streak = 1; // Fresh initialization setup
+  }
+
+  window.appData.lastActivityDate = todayStr;
+  saveData();
+  renderStreak();
+}
+
 // 5. Dynamic Controller Visibility Toggles
 function toggleWidgetVisibility(widgetKey, isVisible) {
   if (window.appData.widgetVisibility[widgetKey] !== undefined) {
@@ -153,7 +201,7 @@ function switchNexusTheme(themeClassName) {
   document.body.className = themeClassName;
   window.appData.currentTheme = themeClassName;
   saveData();
-  
+
   document.querySelectorAll(".theme-orb").forEach(orb => orb.classList.remove("active-orb"));
   const activeOrb = document.querySelector(`.orb-${themeClassName.replace("theme-", "")}`);
   if (activeOrb) activeOrb.classList.add("active-orb");
@@ -203,12 +251,13 @@ function fullyTriggerUIRefresh() {
   try { if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory(); } catch(e){}
   try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
   try { if (typeof window.renderSyllabusDistributionBalance === "function") window.renderSyllabusDistributionBalance(); } catch(e){}
+  try { renderStreak(); } catch(e){}
 }
 
 // Initialization Entry Points 
 document.addEventListener("DOMContentLoaded", () => {
   loadData();
-  
+
   const mainInp = document.getElementById("jee-main-date");
   const advInp = document.getElementById("jee-advanced-date");
   if (mainInp) mainInp.value = window.appData.jeeMainDate || "";
@@ -221,11 +270,12 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCountdowns();
   renderStatusCounts();
   renderPrepIndex();
+  renderStreak(); // 👈 Fixed: Populates data onto your streak card instantly on layout launch
   applyWidgetVisibilityLayouts();
-  
+
   // Restore page view history
   switchNavigationTab(window.appData.lastActiveTab || "dashboard-page");
-  
+
   setTimeout(fullyTriggerUIRefresh, 150);
   setInterval(updateCountdowns, 60000);
 
@@ -247,3 +297,5 @@ window.renderStatusCounts = renderStatusCounts;
 window.renderPrepIndex = renderPrepIndex;
 window.fullyTriggerUIRefresh = fullyTriggerUIRefresh;
 window.switchNavigationTab = switchNavigationTab;
+window.renderStreak = renderStreak;
+window.updateActivity = updateActivity;
