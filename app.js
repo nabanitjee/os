@@ -3,7 +3,7 @@
 // ==========================================================================
 
 window.appData = {
-  jeeMainDate: "2027-01-1",
+  jeeMainDate: "2027-01-15",
   jeeAdvancedDate: "",
   chapters: {},
   journal: [],
@@ -16,7 +16,8 @@ window.appData = {
     clat: true,
     quest: true
   },
-  currentTheme: "theme-blue"
+  currentTheme: "theme-blue",
+  lastActiveTab: "dashboard-page"
 };
 
 // 1. Storage Drivers
@@ -38,6 +39,7 @@ function loadData() {
         window.appData.clat = parsed.clat || [];
         window.appData.futureNotes = parsed.futureNotes || [];
         window.appData.currentTheme = parsed.currentTheme || "theme-blue";
+        window.appData.lastActiveTab = parsed.lastActiveTab || "dashboard-page";
         
         if (parsed.widgetVisibility) {
           window.appData.widgetVisibility.mission = parsed.widgetVisibility.mission !== false;
@@ -47,7 +49,7 @@ function loadData() {
         }
       }
     } catch (e) {
-      console.error("Database reading trace crash: initialization bypassed", e);
+      console.error("Database reading trace crash", e);
     }
   }
 }
@@ -61,21 +63,13 @@ function updateCountdowns() {
   if (mainLabel && window.appData.jeeMainDate) {
     const targetMain = new Date(window.appData.jeeMainDate).getTime();
     const diffMain = targetMain - today;
-    if (diffMain > 0) {
-      mainLabel.textContent = Math.ceil(diffMain / (1000 * 60 * 60 * 24)) + " Days";
-    } else {
-      mainLabel.textContent = "Released";
-    }
+    mainLabel.textContent = diffMain > 0 ? Math.ceil(diffMain / (1000 * 60 * 60 * 24)) + " Days" : "Released";
   }
 
   if (advLabel && window.appData.jeeAdvancedDate) {
     const targetAdv = new Date(window.appData.jeeAdvancedDate).getTime();
     const diffAdv = targetAdv - today;
-    if (diffAdv > 0) {
-      advLabel.textContent = Math.ceil(diffAdv / (1000 * 60 * 60 * 24)) + " Days";
-    } else {
-      advLabel.textContent = "Passed/TBD";
-    }
+    advLabel.textContent = diffAdv > 0 ? Math.ceil(diffAdv / (1000 * 60 * 60 * 24)) + " Days" : "Passed/TBD";
   }
 }
 
@@ -148,13 +142,9 @@ function applyWidgetVisibilityLayouts() {
 
   Object.entries(targets).forEach(([key, element]) => {
     const show = window.appData.widgetVisibility[key] !== false;
-    if (element) {
-      element.style.display = show ? "block" : "none";
-    }
+    if (element) element.style.display = show ? "block" : "none";
     const checkbox = document.getElementById(`toggle-widget-${key}`);
-    if (checkbox) {
-      checkbox.checked = show;
-    }
+    if (checkbox) checkbox.checked = show;
   });
 }
 
@@ -169,7 +159,41 @@ function switchNexusTheme(themeClassName) {
   if (activeOrb) activeOrb.classList.add("active-orb");
 }
 
-// Safer, Global UI Refresh Dispatcher
+// Tab Swapping Controller Function
+function switchNavigationTab(targetPageId) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.style.display = "none";
+    page.classList.remove("active");
+  });
+
+  const targetPageElement = document.getElementById(targetPageId);
+  if (targetPageElement) {
+    targetPageElement.style.display = "block";
+    targetPageElement.classList.add("active");
+  }
+
+  const navigationButtons = document.querySelectorAll(".bottom-nav button");
+  navigationButtons.forEach(btn => {
+    btn.classList.remove("active-nav");
+    if (btn.getAttribute("data-page") === targetPageId) {
+      btn.classList.add("active-nav");
+    }
+  });
+
+  window.appData.lastActiveTab = targetPageId;
+  saveData();
+
+  // Route specific triggers safely with fallback protection loops
+  try {
+    if (targetPageId === "chapters-page" && typeof window.renderChapterGrid === "function") window.renderChapterGrid();
+    if (targetPageId === "revision-directory-page" && typeof window.renderMasterDirectory === "function") window.renderMasterDirectory();
+    if (targetPageId === "journal-page" && typeof window.renderJournal === "function") window.renderJournal();
+    if (targetPageId === "mock-page" && typeof window.renderMocks === "function") window.renderMocks();
+    if (targetPageId === "clat-page" && typeof window.renderClat === "function") window.renderClat();
+    if (targetPageId === "future-page" && typeof window.renderFutureNotes === "function") window.renderFutureNotes();
+  } catch(e) { console.error("Tab Render Exception: ", e); }
+}
+
 function fullyTriggerUIRefresh() {
   try { if (typeof window.renderChapterGrid === "function") window.renderChapterGrid(); } catch(e){}
   try { if (typeof window.renderStatusCounts === "function") window.renderStatusCounts(); } catch(e){}
@@ -178,11 +202,7 @@ function fullyTriggerUIRefresh() {
   try { if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList(); } catch(e){}
   try { if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory(); } catch(e){}
   try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
-  try { if (typeof window.renderJournal === "function") window.renderJournal(); } catch(e){}
-  try { if (typeof window.renderMocks === "function") window.renderMocks(); } catch(e){}
-  try { if (typeof window.renderClat === "function") window.renderClat(); } catch(e){}
-  try { if (typeof window.renderFutureNotes === "function") window.renderFutureNotes(); } catch(e){}
-  try { if (typeof window.renderQuests === "function") window.renderQuests(); } catch(e){}
+  try { if (typeof window.renderSyllabusDistributionBalance === "function") window.renderSyllabusDistributionBalance(); } catch(e){}
 }
 
 // Initialization Entry Points 
@@ -195,58 +215,25 @@ document.addEventListener("DOMContentLoaded", () => {
   if (advInp) advInp.value = window.appData.jeeAdvancedDate || "";
 
   document.body.className = window.appData.currentTheme || "theme-blue";
-  
+  switchNexusTheme(window.appData.currentTheme || "theme-blue");
+
   renderDropDay();
   updateCountdowns();
   renderStatusCounts();
   renderPrepIndex();
   applyWidgetVisibilityLayouts();
   
-  // Safe timeout push to let other files register their methods before initial rendering
-  setTimeout(fullyTriggerUIRefresh, 100);
+  // Restore page view history
+  switchNavigationTab(window.appData.lastActiveTab || "dashboard-page");
   
+  setTimeout(fullyTriggerUIRefresh, 150);
   setInterval(updateCountdowns, 60000);
 
-  // Router Navigation Interceptor
-  const navigationButtons = document.querySelectorAll(".bottom-nav button");
-  navigationButtons.forEach(button => {
+  // Bind Bottom Nav Bar click elements safely
+  document.querySelectorAll(".bottom-nav button").forEach(button => {
     button.addEventListener("click", () => {
       const targetPageId = button.getAttribute("data-page");
-      if (!targetPageId) return;
-
-      document.querySelectorAll(".page").forEach(page => {
-        page.style.display = "none";
-        page.classList.remove("active");
-      });
-
-      const targetPageElement = document.getElementById(targetPageId);
-      if (targetPageElement) {
-        targetPageElement.style.display = "block";
-        targetPageElement.classList.add("active");
-      }
-
-      navigationButtons.forEach(btn => btn.classList.remove("active-nav"));
-      button.classList.add("active-nav");
-
-      // Dynamic view controller re-renders on navigation click
-      if (targetPageId === "chapters-page" && typeof window.renderChapterGrid === "function") {
-        window.renderChapterGrid();
-      }
-      if (targetPageId === "revision-directory-page" && typeof window.renderMasterDirectory === "function") {
-        window.renderMasterDirectory();
-      }
-      if (targetPageId === "journal-page" && typeof window.renderJournal === "function") {
-        window.renderJournal();
-      }
-      if (targetPageId === "mock-page" && typeof window.renderMocks === "function") {
-        window.renderMocks();
-      }
-      if (targetPageId === "clat-page" && typeof window.renderClat === "function") {
-        window.renderClat();
-      }
-      if (targetPageId === "future-page" && typeof window.renderFutureNotes === "function") {
-        window.renderFutureNotes();
-      }
+      if (targetPageId) switchNavigationTab(targetPageId);
     });
   });
 });
@@ -259,3 +246,4 @@ window.updateCountdowns = updateCountdowns;
 window.renderStatusCounts = renderStatusCounts;
 window.renderPrepIndex = renderPrepIndex;
 window.fullyTriggerUIRefresh = fullyTriggerUIRefresh;
+window.switchNavigationTab = switchNavigationTab;
