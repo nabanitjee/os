@@ -504,3 +504,45 @@ canvas {
   .hero h1 { font-size: 2.3rem; }
   .bottom-nav button { font-size: 1.05rem; }
 }
+/* ==========================================================================
+   THEME ACCENT SKINS & SETTINGS GRID COMPONENT UI
+   ========================================================================== */
+
+.theme-orb-container {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 4px 0;
+}
+
+.theme-orb {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid rgba(0, 0, 0, 0.3);
+}
+
+.theme-orb:hover { transform: scale(1.15); }
+.theme-orb.active-orb {
+  border-color: #fff !important;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.5);
+  transform: scale(1.08);
+}
+
+/* Individual Orb Hex Signatures */
+.orb-blue { background: #4f8cff; }
+.orb-green { background: #39d98a; }
+.orb-violet { background: #bd00ff; }
+.orb-crimson { background: #ff5b5b; }
+
+/* THEME ACCENT OVERRIDES USING CORE PROP MAPS */
+body.theme-green { --accent: #39d98a; }
+body.theme-violet { --accent: #bd00ff; }
+body.theme-crimson { --accent: #ff5b5b; }
+
+/* Dynamic visibility toggle handling class */
+.widget-hidden {
+  display: none !important;
+}
