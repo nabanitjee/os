@@ -36,7 +36,6 @@ const FULL_SYLLABUS = {
   ]
 };
 
-// High-Yield Target Arrays
 const ADVANCED_ONLY_CHAPTERS = [
   "Rotational Motion", "Thermal Expansion", "Calorimetry", "Waves",
   "Ionic Equilibrium", "Salt Analysis", "Electrochemistry",
@@ -64,22 +63,19 @@ function initializeSyllabus() {
   const existingKeys = Object.keys(window.appData.chapters);
   
   if (existingKeys.length > 0) {
-    // FIXED: Only inject baseline flags, NEVER Touch or reset the 'status' property!
     Object.entries(window.appData.chapters).forEach(([chapterName, data]) => {
       if (data) {
         data.isAdvancedOnly = ADVANCED_ONLY_CHAPTERS.includes(chapterName);
-        if (!data.status) data.status = "weak"; // Safe fallback only if completely empty
+        if (!data.status) data.status = "weak";
         
         if (HIGH_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "high";
         else if (LOW_PRIORITY_CHAPTERS.includes(chapterName)) data.priority = "low";
         else data.priority = "medium";
       }
     });
-    if (typeof window.saveData === "function") window.saveData();
     return;
   }
 
-  // Fresh initialization mapping loop
   Object.entries(FULL_SYLLABUS).forEach(([subject, chapters]) => {
     chapters.forEach(chapter => {
       let prioritySetting = "medium";
@@ -95,7 +91,7 @@ function initializeSyllabus() {
         revision3: false,
         priority: prioritySetting,
         notes: "",
-        lastRevised: Date.now(),
+        lastRevised: null,
         custom: false,
         isAdvancedOnly: ADVANCED_ONLY_CHAPTERS.includes(chapter)
       };
@@ -103,11 +99,6 @@ function initializeSyllabus() {
   });
 
   if (typeof window.saveData === "function") window.saveData();
-  
-  if (typeof renderStatusCounts === "function") {
-    renderStatusCounts();
-    renderPrepIndex();
-  }
 }
 
 function getSubjectProgress(subject) {
@@ -117,14 +108,10 @@ function getSubjectProgress(subject) {
 
   let totalScore = 0;
   chapters.forEach(chapter => {
-    let statusScore = 0;
-    switch (chapter.status) {
-      case "weak": statusScore = 25; break;
-      case "average": statusScore = 50; break;
-      case "strong": statusScore = 75; break;
-      case "mastered": statusScore = 100; break;
-      default: statusScore = 25;
-    }
+    let statusScore = 25;
+    if (chapter.status === "average") statusScore = 50;
+    if (chapter.status === "strong") statusScore = 75;
+    if (chapter.status === "mastered") statusScore = 100;
     totalScore += statusScore;
   });
   return Math.round(totalScore / chapters.length);
@@ -135,7 +122,7 @@ function renderSubjectProgress() {
   const chemistry = document.getElementById("chemistry-progress");
   const maths = document.getElementById("maths-progress");
 
-  if (!physics || !chemistry || !maths) return;
+  if (!physics || !chemistry || !maths) return; 
 
   physics.style.width = getSubjectProgress("Physics") + "%";
   chemistry.style.width = getSubjectProgress("Chemistry") + "%";
@@ -148,24 +135,43 @@ function renderSubjectProgress() {
   if (mainChapterHeaderCount) mainChapterHeaderCount.innerText = `(${totalChapters} Total)`;
 }
 
-function getDangerZone() {
-  if (!window.appData || !window.appData.chapters) return [];
-  return Object.entries(window.appData.chapters)
-    .sort((a, b) => (a[1].pyq || 0) - (b[1].pyq || 0))
-    .slice(0, 10);
-}
-
 function renderLowestPYQList() {
   const target = document.getElementById("danger-zone-list");
   if (!target) return;
   target.innerHTML = "";
 
-  getDangerZone().forEach(([name, data]) => {
+  const list = Object.entries(window.appData.chapters || {})
+    .sort((a, b) => (a[1].pyq || 0) - (b[1].pyq || 0))
+    .slice(0, 10);
+
+  list.forEach(([name, data]) => {
     target.innerHTML += `
     <div class="danger-item">
-      <strong>${name}</strong><br>${data.pyq} PYQs Solved
+      <strong>${name}</strong><br>${data.pyq || 0} PYQs Solved
     </div>`;
   });
+}
+
+function renderSyllabusDistributionBalance() {
+  const target = document.getElementById("settings-distribution-analyzer");
+  if (!target) return;
+
+  const chapters = Object.values(window.appData.chapters || {});
+  const total = chapters.length;
+  if (!total) {
+    target.innerText = "No data configured in profile database.";
+    return;
+  }
+
+  const high = chapters.filter(c => c.priority === "high").length;
+  const med = chapters.filter(c => c.priority === "medium").length;
+  const low = chapters.filter(c => c.priority === "low").length;
+
+  target.innerHTML = `
+    🔥 High Yield: <strong>${high}</strong> units (${Math.round((high/total)*100)}%)<br>
+    ⚡ Med Yield: <strong>${med}</strong> units (${Math.round((med/total)*100)}%)<br>
+    ❄️ Low Yield: <strong>${low}</strong> units (${Math.round((low/total)*100)}%)
+  `;
 }
 
 function getSubjectCounts() {
@@ -177,13 +183,25 @@ function getSubjectCounts() {
   return result;
 }
 
+// Fixed execution listener to avoid crashing other components on boot
 document.addEventListener("DOMContentLoaded", () => {
   initializeSyllabus();
-  renderLowestPYQList();
-  renderSubjectProgress();
+  
+  // Safe execution delay to let app.js complete its setup first
+  setTimeout(() => {
+    try { renderLowestPYQList(); } catch(e){}
+    try { renderSubjectProgress(); } catch(e){}
+    try { renderSyllabusDistributionBalance(); } catch(e){}
+    
+    // Explicit trigger to populate the missing backlog view safely
+    if (typeof window.fullyTriggerUIRefresh === "function") {
+      window.fullyTriggerUIRefresh();
+    }
+  }, 100);
 });
 
 window.initializeSyllabus = initializeSyllabus;
 window.getSubjectProgress = getSubjectProgress;
 window.renderSubjectProgress = renderSubjectProgress;
 window.getSubjectCounts = getSubjectCounts;
+window.renderSyllabusDistributionBalance = renderSyllabusDistributionBalance;
