@@ -12,7 +12,8 @@ window.appData = {
   futureNotes: [],
   streak: 0,
   lastActivityDate: "",
-  activeMission: "",           // 👈 Added schema baseline tracker
+  activeMissionsList: [],      // 👈 Persistent active mission registry queue array
+  completedMissionsLog: [],    // 👈 Permanent tracking archive list for achievements
   widgetVisibility: {
     mission: true,
     future: true,
@@ -43,7 +44,8 @@ function loadData() {
         window.appData.futureNotes = parsed.futureNotes || [];
         window.appData.streak = parsed.streak !== undefined ? parsed.streak : 0;
         window.appData.lastActivityDate = parsed.lastActivityDate || "";
-        window.appData.activeMission = parsed.activeMission || ""; // 👈 Restores mission from storage
+        window.appData.activeMissionsList = parsed.activeMissionsList || []; // 👈 Synchronize active backlog row profiles
+        window.appData.completedMissionsLog = parsed.completedMissionsLog || []; // 👈 Synchronize past timeline archives entries
         window.appData.currentTheme = parsed.currentTheme || "theme-blue";
         window.appData.lastActiveTab = parsed.lastActiveTab || "dashboard-page";
 
@@ -250,7 +252,8 @@ function fullyTriggerUIRefresh() {
   try { if (typeof window.renderMasterDirectory === "function") window.renderMasterDirectory(); } catch(e){}
   try { if (typeof window.renderBacklogRevision === "function") window.renderBacklogRevision(); } catch(e){}
   try { if (typeof window.renderSyllabusDistributionBalance === "function") window.renderSyllabusDistributionBalance(); } catch(e){}
-  try { if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); } catch(e){} // 👈 Refresh mission display parameters
+  try { if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); } catch(e){} 
+  try { if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); } catch(e){} // 👈 Hot-sync persistent archives
   try { renderStreak(); } catch(e){}
 }
 
@@ -271,7 +274,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderStatusCounts();
   renderPrepIndex();
   renderStreak();
-  if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); // 👈 Initial setup loop target initialization hook
+  
+  if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); 
+  if (typeof window.renderSettingsMissionHistory === "function") window.renderSettingsMissionHistory(); // 👈 Initial render anchor hook mount
   applyWidgetVisibilityLayouts();
 
   switchNavigationTab(window.appData.lastActiveTab || "dashboard-page");
