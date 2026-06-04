@@ -42,19 +42,22 @@ function renderChapterGrid() {
     // Handle standard Text Search Matches
     if (searchQuery && !name.toLowerCase().includes(searchQuery)) return;
 
-    // Handle Active Menu Filters
+    // Handle Active Menu Filters cleanly
     if (currentFilterType === "exam" && currentFilterValue === "advanced-only") {
       if (!data.isAdvancedOnly) return;
     } else if (currentFilterValue !== "all") {
       if (currentFilterType === "priority") {
-        if ((data.priority || "medium") !== currentFilterValue) return;
+        const itemPriority = data.priority || "medium";
+        if (itemPriority !== currentFilterValue) return;
       } else if (currentFilterType === "status") {
-        if (data.status !== currentFilterValue) return;
+        const itemStatus = data.status || "weak";
+        if (itemStatus !== currentFilterValue) return;
       }
     }
 
     renderedCount++;
 
+    // Strict Status Color Matching logic
     let statusColor = "var(--weak)";
     if (data.status === "average") statusColor = "var(--average)";
     if (data.status === "strong") statusColor = "var(--strong)";
@@ -205,7 +208,6 @@ function showChapterEditModal(chapterName) {
       </div>
     `;
 
-    // Hook standard setup actions
     document.getElementById("modal-close-btn").onclick = () => {
       modalOverlay.style.display = "none";
     };
@@ -237,7 +239,7 @@ function showChapterEditModal(chapterName) {
     };
   }
 
-  // Swap content space over into a gorgeous custom inline confirmation interface deck
+  // Swap content space over into custom inline confirmation interface deck
   function renderInbuiltConfirmDeleteView() {
     modalContent.innerHTML = `
       <div style="text-align:center; padding:10px 5px;">
@@ -255,7 +257,7 @@ function showChapterEditModal(chapterName) {
     `;
 
     document.getElementById("inbuilt-cancel-delete-btn").onclick = () => {
-      renderMainEditView(); // Seamlessly loop back to config layout controls
+      renderMainEditView(); 
     };
 
     document.getElementById("inbuilt-confirm-delete-btn").onclick = () => {
@@ -272,7 +274,6 @@ function showChapterEditModal(chapterName) {
     };
   }
 
-  // Open modal display frame loop
   modalOverlay.style.display = "flex";
   renderMainEditView();
 }
