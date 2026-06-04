@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================================================
-// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH DELETE FUNCTION)
+// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH INBUILT POPUP CONFIRMATION)
 // ==========================================================================
 
 function showChapterEditModal(chapterName) {
@@ -165,52 +165,100 @@ function showChapterEditModal(chapterName) {
   const currentPYQs = chapterData.pyq !== undefined ? chapterData.pyq : 0;
   const isAdv = chapterData.isAdvancedOnly === true;
 
-  modalContent.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-      <div>
-        <h3 style="margin:0; font-size:1.2rem; color:#fff;">Configure Chapter</h3>
-        <p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin:4px 0 0 0;">${chapterName}</p>
+  // Render original parameter view
+  function renderMainEditView() {
+    modalContent.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+        <div>
+          <h3 style="margin:0; font-size:1.2rem; color:#fff;">Configure Chapter</h3>
+          <p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin:4px 0 0 0;">${chapterName}</p>
+        </div>
+        <button id="modal-delete-trigger-btn" style="background:#2d1a22; color:var(--weak); padding:8px 12px; margin:0; font-size:0.9rem; border:1px solid rgba(255,91,91,0.2); border-radius:10px;" title="Delete Custom Chapter">🗑️</button>
       </div>
-      <button id="modal-delete-btn" style="background:#2d1a22; color:var(--weak); padding:8px 12px; margin:0; font-size:0.9rem; border:1px solid rgba(255,91,91,0.2); border-radius:10px;" title="Delete Custom Chapter">🗑️</button>
-    </div>
 
-    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8; margin-top:15px;">PREPARATION STATUS</label>
-    <select id="edit-chapter-status" style="margin-top:5px; margin-bottom:15px;">
-      <option value="weak" ${currentStatus === 'weak' ? 'selected' : ''}>❌ Weak</option>
-      <option value="average" ${currentStatus === 'average' ? 'selected' : ''}>⚡ Average</option>
-      <option value="strong" ${currentStatus === 'strong' ? 'selected' : ''}>🔥 Strong</option>
-      <option value="mastered" ${currentStatus === 'mastered' ? 'selected' : ''}>🏆 Mastered</option>
-    </select>
+      <label style="font-size:0.8rem; font-weight:bold; opacity:0.8; margin-top:15px;">PREPARATION STATUS</label>
+      <select id="edit-chapter-status" style="margin-top:5px; margin-bottom:15px;">
+        <option value="weak" ${currentStatus === 'weak' ? 'selected' : ''}>❌ Weak</option>
+        <option value="average" ${currentStatus === 'average' ? 'selected' : ''}>⚡ Average</option>
+        <option value="strong" ${currentStatus === 'strong' ? 'selected' : ''}>🔥 Strong</option>
+        <option value="mastered" ${currentStatus === 'mastered' ? 'selected' : ''}>🏆 Mastered</option>
+      </select>
 
-    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">HIGH-YIELD WEIGHTED PRIORITY</label>
-    <select id="edit-chapter-priority" style="margin-top:5px; margin-bottom:15px;">
-      <option value="high" ${currentPriority === 'high' ? 'selected' : ''}>🔥 High Priority</option>
-      <option value="medium" ${currentPriority === 'medium' ? 'selected' : ''}>⚡ Medium Priority</option>
-      <option value="low" ${currentPriority === 'low' ? 'selected' : ''}>❄️ Low Priority</option>
-    </select>
+      <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">HIGH-YIELD WEIGHTED PRIORITY</label>
+      <select id="edit-chapter-priority" style="margin-top:5px; margin-bottom:15px;">
+        <option value="high" ${currentPriority === 'high' ? 'selected' : ''}>🔥 High Priority</option>
+        <option value="medium" ${currentPriority === 'medium' ? 'selected' : ''}>⚡ Medium Priority</option>
+        <option value="low" ${currentPriority === 'low' ? 'selected' : ''}>❄️ Low Priority</option>
+      </select>
 
-    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">TOTAL PYQs SOLVED</label>
-    <input type="number" id="edit-chapter-pyq" value="${currentPYQs}" min="0" style="margin-top:5px; margin-bottom:15px;">
+      <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">TOTAL PYQs SOLVED</label>
+      <input type="number" id="edit-chapter-pyq" value="${currentPYQs}" min="0" style="margin-top:5px; margin-bottom:15px;">
 
-    <div class="checkbox-row" style="margin-top:5px; margin-bottom:20px;">
-      <input type="checkbox" id="edit-chapter-adv-only" ${isAdv ? 'checked' : ''}>
-      <span style="font-size:0.85rem;">Tag as Core JEE Advanced Exclusive Unit</span>
-    </div>
+      <div class="checkbox-row" style="margin-top:5px; margin-bottom:20px;">
+        <input type="checkbox" id="edit-chapter-adv-only" ${isAdv ? 'checked' : ''}>
+        <span style="font-size:0.85rem;">Tag as Core JEE Advanced Exclusive Unit</span>
+      </div>
 
-    <div class="action-row" style="display:flex; gap:10px;">
-      <button id="modal-save-btn" style="margin:0;">Save Parameters</button>
-      <button id="modal-close-btn" style="background:var(--card2); box-shadow:none; margin:0;">Cancel</button>
-    </div>
-  `;
+      <div class="action-row" style="display:flex; gap:10px;">
+        <button id="modal-save-btn" style="margin:0;">Save Parameters</button>
+        <button id="modal-close-btn" style="background:var(--card2); box-shadow:none; margin:0;">Cancel</button>
+      </div>
+    `;
 
-  modalOverlay.style.display = "flex";
+    // Hook standard setup actions
+    document.getElementById("modal-close-btn").onclick = () => {
+      modalOverlay.style.display = "none";
+    };
 
-  document.getElementById("modal-close-btn").onclick = () => {
-    modalOverlay.style.display = "none";
-  };
+    document.getElementById("modal-delete-trigger-btn").onclick = () => {
+      renderInbuiltConfirmDeleteView();
+    };
 
-  document.getElementById("modal-delete-btn").onclick = () => {
-    if (confirm(`Are you absolutely sure you want to permanently delete "${chapterName}" from your JEE database?`)) {
+    document.getElementById("modal-save-btn").onclick = () => {
+      const nextStatus = document.getElementById("edit-chapter-status").value;
+      const nextPriority = document.getElementById("edit-chapter-priority").value;
+      const nextPYQs = parseInt(document.getElementById("edit-chapter-pyq").value, 10) || 0;
+      const nextAdvFlag = document.getElementById("edit-chapter-adv-only").checked;
+
+      window.appData.chapters[chapterName].status = nextStatus;
+      window.appData.chapters[chapterName].priority = nextPriority;
+      window.appData.chapters[chapterName].pyq = nextPYQs;
+      window.appData.chapters[chapterName].isAdvancedOnly = nextAdvFlag;
+      window.appData.chapters[chapterName].lastRevised = new Date().toISOString(); 
+
+      if (typeof window.saveData === "function") window.saveData();
+      modalOverlay.style.display = "none";
+
+      renderChapterGrid();
+      if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
+      if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
+      if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
+      if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
+    };
+  }
+
+  // Swap content space over into a gorgeous custom inline confirmation interface deck
+  function renderInbuiltConfirmDeleteView() {
+    modalContent.innerHTML = `
+      <div style="text-align:center; padding:10px 5px;">
+        <div style="font-size:2.5rem; margin-bottom:12px;">⚠️</div>
+        <h3 style="color:var(--weak); font-size:1.25rem; margin-bottom:6px;">Danger Zone Confirmation</h3>
+        <p style="font-size:0.9rem; opacity:0.85; line-height:1.4; color:#e2e8f0; margin-bottom:20px;">
+          Are you absolutely sure you want to permanently delete <br><strong style="color:#fff;">"${chapterName}"</strong> from your database? This metric action cannot be undone.
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button id="inbuilt-confirm-delete-btn" style="background:var(--weak); margin:0; width:100%; padding:12px;">Yes, Delete Permanently</button>
+          <button id="inbuilt-cancel-delete-btn" style="background:var(--card2); box-shadow:none; margin:0; width:100%; padding:12px;">No, Keep Chapter</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("inbuilt-cancel-delete-btn").onclick = () => {
+      renderMainEditView(); // Seamlessly loop back to config layout controls
+    };
+
+    document.getElementById("inbuilt-confirm-delete-btn").onclick = () => {
       delete window.appData.chapters[chapterName];
       
       if (typeof window.saveData === "function") window.saveData();
@@ -221,31 +269,12 @@ function showChapterEditModal(chapterName) {
       if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
       if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
       if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
-    }
-  };
+    };
+  }
 
-  document.getElementById("modal-save-btn").onclick = () => {
-    const nextStatus = document.getElementById("edit-chapter-status").value;
-    const nextPriority = document.getElementById("edit-chapter-priority").value;
-    const nextPYQs = parseInt(document.getElementById("edit-chapter-pyq").value, 10) || 0;
-    const nextAdvFlag = document.getElementById("edit-chapter-adv-only").checked;
-
-    window.appData.chapters[chapterName].status = nextStatus;
-    window.appData.chapters[chapterName].priority = nextPriority;
-    window.appData.chapters[chapterName].pyq = nextPYQs;
-    window.appData.chapters[chapterName].isAdvancedOnly = nextAdvFlag;
-    window.appData.chapters[chapterName].lastRevised = new Date().toISOString(); 
-
-    if (typeof window.saveData === "function") window.saveData();
-    
-    modalOverlay.style.display = "none";
-
-    renderChapterGrid();
-    if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
-    if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
-    if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
-    if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
-  };
+  // Open modal display frame loop
+  modalOverlay.style.display = "flex";
+  renderMainEditView();
 }
 
 // Bind methods onto window target layers for structural protection
