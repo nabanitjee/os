@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================================================
-// CENTRAL EDIT MODAL INJECTOR ENGINE
+// CENTRAL EDIT MODAL INJECTOR ENGINE (WITH DELETE FUNCTION)
 // ==========================================================================
 
 function showChapterEditModal(chapterName) {
@@ -166,10 +166,15 @@ function showChapterEditModal(chapterName) {
   const isAdv = chapterData.isAdvancedOnly === true;
 
   modalContent.innerHTML = `
-    <h3 style="margin-bottom:8px; font-size:1.2rem; color:#fff;">Configure Chapter</h3>
-    <p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin-bottom:15px;">${chapterName}</p>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+      <div>
+        <h3 style="margin:0; font-size:1.2rem; color:#fff;">Configure Chapter</h3>
+        <p style="font-size:0.85rem; color:var(--accent); font-weight:bold; margin:4px 0 0 0;">${chapterName}</p>
+      </div>
+      <button id="modal-delete-btn" style="background:#2d1a22; color:var(--weak); padding:8px 12px; margin:0; font-size:0.9rem; border:1px solid rgba(255,91,91,0.2); border-radius:10px;" title="Delete Custom Chapter">🗑️</button>
+    </div>
 
-    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8;">PREPARATION STATUS</label>
+    <label style="font-size:0.8rem; font-weight:bold; opacity:0.8; margin-top:15px;">PREPARATION STATUS</label>
     <select id="edit-chapter-status" style="margin-top:5px; margin-bottom:15px;">
       <option value="weak" ${currentStatus === 'weak' ? 'selected' : ''}>❌ Weak</option>
       <option value="average" ${currentStatus === 'average' ? 'selected' : ''}>⚡ Average</option>
@@ -204,6 +209,21 @@ function showChapterEditModal(chapterName) {
     modalOverlay.style.display = "none";
   };
 
+  document.getElementById("modal-delete-btn").onclick = () => {
+    if (confirm(`Are you absolutely sure you want to permanently delete "${chapterName}" from your JEE database?`)) {
+      delete window.appData.chapters[chapterName];
+      
+      if (typeof window.saveData === "function") window.saveData();
+      modalOverlay.style.display = "none";
+      
+      renderChapterGrid();
+      if (typeof window.renderStatusCounts === "function") window.renderStatusCounts();
+      if (typeof window.renderPrepIndex === "function") window.renderPrepIndex();
+      if (typeof window.renderSubjectProgress === "function") window.renderSubjectProgress();
+      if (typeof window.renderLowestPYQList === "function") window.renderLowestPYQList();
+    }
+  };
+
   document.getElementById("modal-save-btn").onclick = () => {
     const nextStatus = document.getElementById("edit-chapter-status").value;
     const nextPriority = document.getElementById("edit-chapter-priority").value;
@@ -228,7 +248,7 @@ function showChapterEditModal(chapterName) {
   };
 }
 
-// Bind methods onto window target array layers for structural protection
+// Bind methods onto window target layers for structural protection
 window.renderChapterGrid = renderChapterGrid;
 window.updateAdvancedTrackerMetric = updateAdvancedTrackerMetric;
 window.showChapterEditModal = showChapterEditModal;
