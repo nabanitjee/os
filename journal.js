@@ -1,9 +1,16 @@
-// =========================
-// JOURNAL MODULE V4
-// =========================
+// ==========================================================================
+// JOURNAL MODULE V4 (WITH AUTOMATED ADVANCED PATTERN FILTER SEARCH)
+// ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("add-journal-entry")?.addEventListener("click", () => showJournalForm());
+  
+  // Attach structural event listener to look for typing inputs in real-time
+  const searchBar = document.getElementById("journal-search");
+  if (searchBar) {
+    searchBar.addEventListener("input", () => renderJournal());
+  }
+  
   renderJournal();
 });
 
@@ -11,7 +18,6 @@ function showJournalForm(entryId = null) {
   const isEdit = entryId !== null;
   let entry = { hours: "", mood: "7", work: "", notes: "" };
 
-  // Safety fallback for window appData scope checking
   if (!window.appData) window.appData = { journal: [] };
   if (!window.appData.journal) window.appData.journal = [];
 
@@ -21,7 +27,7 @@ function showJournalForm(entryId = null) {
   }
 
   const formHTML = `
-    <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif;">
+    <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align: left;">
       <h3 style="margin-top:0; color:var(--accent);">${isEdit ? "Edit Daily Log Record" : "Create Daily Journal Entry"}</h3>
       <hr style="border:0; border-top:1px solid #334; margin-bottom:15px;">
       
@@ -47,13 +53,12 @@ function showJournalForm(entryId = null) {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0;">Cancel</button>
-        <button onclick="processJournalSubmit(${isEdit ? entry.id : null})" style="background:var(--accent); margin:0; font-weight:bold;">Save Journal</button>
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; padding:12px; flex:1;">Cancel</button>
+        <button onclick="processJournalSubmit(${isEdit ? entry.id : null})" style="background:var(--accent); margin:0; font-weight:bold; padding:12px; flex:1;">Save Journal</button>
       </div>
     </div>
   `;
 
-  // Dynamic overlay selector checking
   if (typeof showModal === "function") {
     showModal(formHTML);
   } else {
@@ -92,7 +97,7 @@ function processJournalSubmit(existingId = null) {
       work: wkVal,
       notes: ntVal
     });
-    if (typeof updateActivity === "function") updateActivity();
+    if (typeof updateActivity === "function") window.updateActivity();
   }
 
   if (typeof window.saveData === "function") {
@@ -101,7 +106,6 @@ function processJournalSubmit(existingId = null) {
     localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
   }
 
-  // Close popup view
   if (typeof hideModal === "function") {
     hideModal();
   } else {
@@ -109,7 +113,6 @@ function processJournalSubmit(existingId = null) {
     if (overlay) overlay.style.display = "none";
   }
 
-  // INSTANT RE-RENDER TRIGGERS Across active UI panels
   renderJournal();
   if (typeof window.fullyTriggerUIRefresh === "function") {
     window.fullyTriggerUIRefresh();
@@ -118,13 +121,13 @@ function processJournalSubmit(existingId = null) {
 
 function deleteJournalEntry(id) {
   window.appData.journal = window.appData.journal.filter(entry => entry.id !== id);
-  
+
   if (typeof window.saveData === "function") {
     window.saveData();
   } else {
     localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
   }
-  
+
   renderJournal();
   if (typeof window.fullyTriggerUIRefresh === "function") {
     window.fullyTriggerUIRefresh();
@@ -136,9 +139,17 @@ function editJournalEntry(id) {
 }
 
 function filterJournal() {
-  const q = document.getElementById("journal-search")?.value.toLowerCase() || "";
+  const q = document.getElementById("journal-search")?.value.toLowerCase().trim() || "";
   const baseList = (window.appData && window.appData.journal) ? window.appData.journal : [];
-  return baseList.filter(entry => entry.date.toLowerCase().includes(q));
+  
+  if (!q) return baseList;
+
+  // Search parameters include date string checks, work content fields, and note string properties
+  return baseList.filter(entry => {
+    return entry.date.toLowerCase().includes(q) || 
+           entry.work.toLowerCase().includes(q) || 
+           entry.notes.toLowerCase().includes(q);
+  });
 }
 
 function renderJournal() {
@@ -146,27 +157,27 @@ function renderJournal() {
   if (!container) return;
 
   const entries = filterJournal();
-  entries.sort((a, b) => b.id - a.id);
+  const sorted = [...entries].sort((a, b) => b.id - a.id);
 
   let html = "";
 
-  entries.forEach(entry => {
+  sorted.forEach(entry => {
     html += `
-      <div class="journal-card">
-        <h3 style="color:var(--accent); margin-bottom:6px;">📅 Day Log: ${entry.date}</h3>
-        <p style="margin:4px 0;">⏱ Hours: <strong>${entry.hours} hours</strong></p>
-        <p style="margin:4px 0;">😊 Mood: <strong>${entry.mood}/10</strong></p>
-        <p style="margin:6px 0; font-size:0.95rem; color:#e2e8f0;">📚 Work: ${entry.work}</p>
-        ${entry.notes ? `<p style="margin:6px 0; font-size:0.9rem; color:#94a3b8; background:rgba(0,0,0,0.15); padding:8px; border-radius:8px;">📝 Notes: ${entry.notes}</p>` : ""}
-        <div class="action-row" style="margin-top:12px;">
-          <button onclick="editJournalEntry(${entry.id})" style="background:var(--card2);">Edit</button>
-          <button onclick="deleteJournalEntry(${entry.id})" style="background:#b91c1c;">Delete</button>
+      <div class="journal-card" style="text-align: left; margin-bottom:12px;">
+        <h3 style="color:var(--accent); margin-bottom:6px; font-size:1.05rem;">📅 Day Log: ${entry.date}</h3>
+        <p style="margin:4px 0; font-size:0.9rem;">⏱ Hours: <strong style="color:#fff;">${entry.hours} hours</strong></p>
+        <p style="margin:4px 0; font-size:0.9rem;">😊 Mood: <strong style="color:#fff;">${entry.mood}/10</strong></p>
+        <p style="margin:6px 0; font-size:0.95rem; color:#e2e8f0; line-height:1.4;">📚 Work: ${entry.work}</p>
+        ${entry.notes ? `<p style="margin:6px 0; font-size:0.9rem; color:#94a3b8; background:rgba(0,0,0,0.15); padding:10px; border-radius:8px; line-height:1.4; white-space:pre-wrap;">📝 Notes: ${entry.notes}</p>` : ""}
+        <div class="action-row" style="margin-top:12px; display:flex; gap:8px;">
+          <button onclick="editJournalEntry(${entry.id})" style="background:var(--card2); padding:8px 14px; margin:0;">Edit</button>
+          <button onclick="deleteJournalEntry(${entry.id})" style="background:#b91c1c; padding:8px 14px; margin:0;">Delete</button>
         </div>
       </div>
     `;
   });
 
-  container.innerHTML = html || `<div class="card" style="opacity:0.5; text-align:center; padding:20px;">No Journal Entries Found</div>`;
+  container.innerHTML = html || `<div class="card" style="opacity:0.5; text-align:center; padding:20px;">No Matching Log Entries Found</div>`;
 }
 
 function getTotalStudyHours() {
@@ -174,11 +185,11 @@ function getTotalStudyHours() {
   return baseList.reduce((sum, entry) => sum + Number(entry.hours || 0), 0);
 }
 
-// Fallback structural alias mapping to intercept index.html global calls
+// Global script navigation layout mapping references
 window.showAddJournalModal = showJournalForm;
-
 window.showJournalForm = showJournalForm;
 window.processJournalSubmit = processJournalSubmit;
 window.editJournalEntry = editJournalEntry;
 window.deleteJournalEntry = deleteJournalEntry;
 window.renderJournal = renderJournal;
+window.getTotalStudyHours = getTotalStudyHours;
