@@ -1,6 +1,6 @@
-// =========================
-// FUTURE ME MODULE V4
-// =========================
+// ==========================================================================
+// FUTURE ME TIME CAPSULE MODULE V4 (WITH INSTANT DASHBOARD RE-RENDERING)
+// ==========================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("add-future-note-btn")?.addEventListener("click", () => showFutureNoteForm());
@@ -12,8 +12,12 @@ function showFutureNoteForm(noteId = null) {
   const isEdit = noteId !== null;
   let note = { title: "", message: "" };
 
+  // Enforce consistent object allocation in window scope
+  if (!window.appData) window.appData = { futureNotes: [] };
+  if (!window.appData.futureNotes) window.appData.futureNotes = [];
+
   if (isEdit) {
-    const found = appData.futureNotes.find(n => n.id === Number(noteId));
+    const found = window.appData.futureNotes.find(n => n.id === Number(noteId));
     if (found) note = found;
   }
 
@@ -33,26 +37,42 @@ function showFutureNoteForm(noteId = null) {
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-        <button onclick="hideModal()" style="background:#475569; margin:0;">Cancel</button>
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0;">Cancel</button>
         <button onclick="processFutureNoteSubmit(${isEdit ? note.id : null})" style="background:var(--accent); margin:0; font-weight:bold;">Seal Capsule</button>
       </div>
     </div>
   `;
-  
-  if (typeof showModal === "function") showModal(formHTML);
+
+  if (typeof showModal === "function") {
+    showModal(formHTML);
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    const content = document.getElementById("modal-content");
+    if (overlay && content) {
+      content.innerHTML = formHTML;
+      overlay.style.display = "flex";
+    }
+  }
 }
 
 function processFutureNoteSubmit(existingId = null) {
+  if (!window.appData) window.appData = { futureNotes: [] };
+  if (!window.appData.futureNotes) window.appData.futureNotes = [];
+
   const tVal = document.getElementById("fn-title").value.trim() || "Untitled Capsule";
   const mVal = document.getElementById("fn-message").value.trim();
 
-  if (!mVal) { hideModal(); return; }
+  if (!mVal) {
+    if (typeof hideModal === "function") hideModal();
+    else document.getElementById("modal-overlay").style.display = "none";
+    return;
+  }
 
   if (existingId) {
-    const item = appData.futureNotes.find(n => n.id === existingId);
+    const item = window.appData.futureNotes.find(n => n.id === existingId);
     if (item) { item.title = tVal; item.message = mVal; }
   } else {
-    appData.futureNotes.push({
+    window.appData.futureNotes.push({
       id: Date.now(), title: tVal, message: mVal,
       createdDate: new Date().toISOString().split("T")[0],
       targetDate: "", opened: false
@@ -60,43 +80,82 @@ function processFutureNoteSubmit(existingId = null) {
     if (typeof updateActivity === "function") updateActivity();
   }
 
-  saveData();
-  hideModal();
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
+  if (typeof hideModal === "function") {
+    hideModal();
+  } else {
+    const overlay = document.getElementById("modal-overlay");
+    if (overlay) overlay.style.display = "none";
+  }
+
   renderFutureNotes();
   renderMotivationCard(); 
+
+  // INSTANT HOT RE-RENDER: Synchronize home dashboard view states on submission
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function deleteFutureNote(id) {
-  appData.futureNotes = appData.futureNotes.filter(note => note.id !== id);
-  saveData();
+  if (!window.appData || !window.appData.futureNotes) return;
+  window.appData.futureNotes = window.appData.futureNotes.filter(note => note.id !== id);
+  
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
   renderFutureNotes();
   renderMotivationCard();
+
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function editFutureNote(id) { showFutureNoteForm(id); }
 
 function markFutureNoteOpened(id) {
-  const note = appData.futureNotes.find(n => n.id === id);
+  if (!window.appData || !window.appData.futureNotes) return;
+  const note = window.appData.futureNotes.find(n => n.id === id);
   if (!note) return;
 
   note.opened = !note.opened;
 
-  saveData();
+  if (typeof window.saveData === "function") {
+    window.saveData();
+  } else {
+    localStorage.setItem("jee_nexus_master_db", JSON.stringify(window.appData));
+  }
+
   renderFutureNotes();
   renderMotivationCard();
+
+  if (typeof window.fullyTriggerUIRefresh === "function") {
+    window.fullyTriggerUIRefresh();
+  }
 }
 
 function renderMotivationCard() {
   const target = document.getElementById("motivation-card");
   if (!target) return;
 
-  const unopenedNotes = appData.futureNotes.filter(n => !n.opened);
+  const baseList = (window.appData && window.appData.futureNotes) ? window.appData.futureNotes : [];
+  const unopenedNotes = baseList.filter(n => !n.opened);
 
   if (unopenedNotes.length === 0) {
     target.innerHTML = `<span style="opacity:0.5; font-style:italic;">No unopened future notes yet. Seal a time capsule to unlock motivation later!</span>`;
     return;
   }
 
+  // Uses a solid math index fallback loop to select structural array components cleanly
   const randomNote = unopenedNotes[Math.floor(Math.random() * unopenedNotes.length)];
   target.innerHTML = `
     <h4 style="margin:0 0 4px 0; color:var(--accent);">🔒 ${randomNote.title}</h4>
@@ -109,7 +168,8 @@ function renderFutureNotes() {
   if (!container) return;
 
   let html = "";
-  const sorted = [...appData.futureNotes].sort((a, b) => b.id - a.id);
+  const baseList = (window.appData && window.appData.futureNotes) ? window.appData.futureNotes : [];
+  const sorted = [...baseList].sort((a, b) => b.id - a.id);
 
   sorted.forEach(note => {
     const isOpened = note.opened;
@@ -132,10 +192,14 @@ function renderFutureNotes() {
     `;
   });
 
-  container.innerHTML = html || `<div class="card">No Future Notes Found</div>`;
+  container.innerHTML = html || `<div class="card" style="opacity:0.5; text-align:center; padding:20px;">No Future Notes Found</div>`;
 }
+
+// Global configuration hooks for structural index layout mapping
+window.showAddFutureNoteModal = showFutureNoteForm;
 
 window.editFutureNote = editFutureNote;
 window.deleteFutureNote = deleteFutureNote;
 window.markFutureNoteOpened = markFutureNoteOpened;
 window.renderMotivationCard = renderMotivationCard;
+window.renderFutureNotes = renderFutureNotes;
