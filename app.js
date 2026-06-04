@@ -419,11 +419,14 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCountdowns();
   renderStatusCounts();
   renderPrepIndex();
-  renderStreak();
+  
+  // 🔥 FIX: Run the activity tracker check engine instantly on launch instead of just rendering old data
+  updateActivity(); 
   
   setTimeout(() => {
     try { window.renderTotalPYQsAndMilestones(); } catch(e){}
   }, 300);
+
 
   if (typeof window.renderMissionBoard === "function") window.renderMissionBoard(); 
   if (typeof window.renderQuest === "function") window.renderQuest(); 
