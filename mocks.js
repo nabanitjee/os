@@ -308,3 +308,76 @@ window.initMockCharts = initMockCharts;
 window.renderMocks = renderMocks;
 window.renderLatestMock = renderLatestMock;
 window.renderMockAnalytics = renderMockAnalytics;
+// ==========================================================================
+// ADDITION: CONCENTRATED MISTAKE REPOSITORY SYSTEM
+// ==========================================================================
+
+function compileMistakeRepository() {
+  const overlay = document.getElementById("modal-overlay");
+  const contentBox = document.getElementById("modal-content");
+
+  if (!overlay || !contentBox) {
+    console.error("Layout target selectors missing in index.html");
+    return;
+  }
+
+  const baseMocks = (window.appData && window.appData.mocks) ? window.appData.mocks : [];
+  
+  // Filter for mocks that actually have logged mistakes
+  const mocksWithErrors = baseMocks.filter(m => m.errorLog && m.errorLog.trim() !== "");
+
+  let repositoryHTML = `
+    <div class="form-container" style="padding:10px; color:#fff; font-family:sans-serif; text-align:left;">
+      <div style="display:flex; justify-content:between; align-items:center; margin-bottom:10px;">
+        <h3 style="margin:0; color:#ffa3a3; font-weight:900;">📋 CONCENTRATED MISTAKE REPOSITORY</h3>
+      </div>
+      <p style="font-size:0.82rem; opacity:0.6; margin-top:4px; margin-bottom:15px; line-height:1.4;">
+        A consolidated feed of all conceptual pitfalls and silly errors logged across your custom mock series. Review these before your next test to prevent repeating them.
+      </p>
+      <hr style="border:0; border-top:1px solid #334; margin-bottom:15px;">
+      
+      <div style="max-height:320px; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:12px;">
+  `;
+
+  if (mocksWithErrors.length === 0) {
+    repositoryHTML += `
+      <div style="text-align:center; padding:30px 10px; opacity:0.5; font-size:0.9rem; font-style:italic; line-height:1.5;">
+        ✨ No flaws or mistakes flagged in your mock logs yet! <br>
+        When you add or edit a mock test score, use the "Major Mistakes" field to populate this review log.
+      </div>
+    `;
+  } else {
+    // Render each test mistake log block
+    mocksWithErrors.forEach(mock => {
+      repositoryHTML += `
+        <div style="background:rgba(255,163,163,0.04); border-left:4px solid #ffa3a3; padding:10px 14px; border-radius:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="color:#fff; font-size:0.92rem;">${mock.examName}</strong>
+            <span style="font-size:0.75rem; opacity:0.5;">📅 ${mock.date}</span>
+          </div>
+          <div style="font-size:0.88rem; color:#e2e8f0; white-space:pre-wrap; line-height:1.4; background:rgba(0,0,0,0.15); padding:8px; border-radius:6px;">${mock.errorLog}</div>
+          <div style="font-size:0.75rem; opacity:0.5; margin-top:6px;">
+            Test Score: <strong>${mock.total} / ${mock.maxMarks}</strong> (P: ${mock.physics} | C: ${mock.chemistry} | M: ${mock.maths})
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  repositoryHTML += `
+      </div>
+      
+      <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+        <button onclick="if(typeof hideModal === 'function'){ hideModal(); } else { document.getElementById('modal-overlay').style.display='none'; }" style="background:#475569; margin:0; width:100%; padding:12px; font-weight:bold;">Close Repository</button>
+      </div>
+    </div>
+  `;
+
+  // Display the modal frame
+  contentBox.innerHTML = repositoryHTML;
+  overlay.style.display = "flex";
+}
+
+// Bind directly to the global window object so index.html's inline onclick attribute can see it
+window.compileMistakeRepository = compileMistakeRepository;
+
